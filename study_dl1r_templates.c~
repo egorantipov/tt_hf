@@ -1,0 +1,188 @@
+#include <TH1.h>
+#include <TH2.h>
+#include <TF1.h>
+#include <TTree.h>
+#include <TFile.h>
+#include <TSystemFile.h>
+#include <TSystemDirectory.h>
+#include <TCanvas.h>
+#include <TStyle.h>
+#include <TLegend.h>
+#include <TPad.h>
+#include <TMath.h>
+#include <TFractionFitter.h>
+
+#include <iostream>
+#include <sstream>
+#include <vector>
+using namespace std;
+
+
+
+// ###########################
+// ## Draw a few histograms ##
+// ###########################
+int draw_n_histos(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_title, TString title, bool normalize=false, double y_min=0, double y_max=10000)
+{
+  // Draws N histogram on one canvas (not stacked)
+  cout << "Start drawing " << title << " !" << endl;
+  if (h_vec.size()==0) { cout << "h_vec is emmpty, aborting!!!" << endl; return 0; }
+
+
+  TCanvas *c = new TCanvas(h_title[0], h_title[0], 1600, 900);
+  gStyle->SetOptStat(0);
+  gPad->SetGrid();
+  if (normalize==false) gPad->SetLogy();
+  double legend_height = 0.09*h_vec.size();
+  double legend_y1 = 0.90 - legend_height;
+  TLegend *legend = new TLegend(0.80, legend_y1, 0.90, 0.90);
+
+  for (int i=0; i<h_vec.size(); i++)
+    {
+      // TEST                                                                                        
+      if (!h_vec[i]) cout << "Requested object TH_[" << i << "] wasn't found!" << endl;
+
+      double h_int = h_vec[i]->Integral(0, h_vec[i]->GetNbinsX());
+      double sf = 1/h_int;
+
+      h_vec[i]->SetMarkerStyle(20);
+      h_vec[i]->SetMarkerSize(2);
+      h_vec[i]->SetMarkerColor(i+1);
+      h_vec[i]->SetLineColor(i+1);
+      h_vec[i]->SetLineWidth(2);
+      if (normalize==true) h_vec[i]->Scale(sf);
+      if (i==0)
+        {
+          h_vec[i]->Draw("C");
+          h_vec[i]->SetTitle(title);
+          if (normalize==false)
+            {
+              h_vec[i]->GetYaxis()->SetRangeUser(y_min, y_max);
+              h_vec[i]->GetYaxis()->SetTitle("#bf{Events}");
+            }
+          else
+            {
+              h_vec[i]->GetYaxis()->SetRangeUser(0, 1.1);
+              h_vec[i]->GetYaxis()->SetTitle("#bf{Events norm to 1}");
+            }
+          h_vec[i]->GetXaxis()->SetTitle(x_axis_title);
+        }
+      else { h_vec[i]->Draw("same C"); }
+      legend->AddEntry(h_vec[i], h_title[i]);
+    }
+  legend->Draw("same");
+
+  c->Print("Plots/" + title + ".png");
+  cout << "Drawn " + title + " !" << endl;
+
+  return 0;
+}
+
+
+
+// ##############
+// ##   MAIN   ##
+// ##############
+void study_dl1r_templates()
+{
+  // OPen the file with histograms
+  TFile *hists_file_mc = TFile::Open("hists_mc.root");
+
+
+  
+  // Get required histograms
+  // Scale them to unity right away
+  vector<TString> processes = {"2b1l", "4b", "3b", "2b1c"};
+  TH1 *mc16_tag0_DL1r[4];
+  TH1 *mc16_tag1_DL1r[4];
+  TH1 *mc16_tag2_DL1r[4];
+  TH1 *mc16_tag2_DL1r_tmp[4];
+  for (int topHFFF_i=0; topHFFF_i<4; topHFFF_i++) {
+    mc16_tag0_DL1r[topHFFF_i] = (TH1*)hists_file_mc->Get("DL1r_templates_"+processes[topHFFF_i]+"_1st_tag");
+    double tag0_sf = mc16_tag0_DL1r[topHFFF_i]->Integral(0,  mc16_tag0_DL1r[topHFFF_i]->GetNbinsX() + 1);
+    mc16_tag0_DL1r[topHFFF_i]->Scale(1/tag0_sf);
+
+    mc16_tag1_DL1r[topHFFF_i] = (TH1*)hists_file_mc->Get("DL1r_templates_"+processes[topHFFF_i]+"_2nd_tag");
+    double tag1_sf = mc16_tag1_DL1r[topHFFF_i]->Integral(0, mc16_tag1_DL1r[topHFFF_i]->GetNbinsX() + 1);
+    mc16_tag1_DL1r[topHFFF_i]->Scale(1/tag1_sf);
+    
+    mc16_tag2_DL1r[topHFFF_i] = (TH1*)hists_file_mc->Get("DL1r_templates_"+processes[topHFFF_i]+"_3rd_tag");
+    double tag2_sf = mc16_tag2_DL1r[topHFFF_i]->Integral(0, mc16_tag2_DL1r[topHFFF_i]->GetNbinsX() + 1);
+    mc16_tag2_DL1r[topHFFF_i]->Scale(1/tag2_sf); }
+
+
+  
+  // Make mixtures of the taggers in known ratios
+  // Reference order: 2b1l, 4b, 3b, 2b1c
+  TH1 *mc16_tag0_DL1r_mix[9];
+  TH1 *mc16_tag1_DL1r_mix[9];
+  TH1 *mc16_tag2_DL1r_mix[9];
+  double fr_multiplier = 50;
+  vector<double> fraction_2b1l = {0.60, 0.60, 0.60, 0.70, 0.70, 0.70, 0.80, 0.80, 0.80};
+  vector<double> fraction_4b   = {0.05, 0.10, 0.15, 0.03, 0.07, 0.10, 0.03, 0.05, 0.07};
+  vector<double> fraction_3b   = {0.05, 0.10, 0.15, 0.03, 0.07, 0.10, 0.03, 0.05, 0.07};
+  vector<double> fraction_2b1c = {0.30, 0.20, 0.10, 0.24, 0.16, 0.10, 0.14, 0.10, 0.06};
+  for (int i=0; i<fraction_2b1l.size(); i++) {
+    mc16_tag0_DL1r_mix[i] = (TH1F*)mc16_tag0_DL1r[0]->Clone();
+    mc16_tag0_DL1r_mix[i]->Scale(fr_multiplier*fraction_2b1l[i]);
+    mc16_tag1_DL1r_mix[i] = (TH1F*)mc16_tag1_DL1r[0]->Clone();
+    mc16_tag1_DL1r_mix[i]->Scale(fr_multiplier*fraction_2b1l[i]);
+    mc16_tag2_DL1r_mix[i] = (TH1F*)mc16_tag2_DL1r[0]->Clone();
+    mc16_tag2_DL1r_mix[i]->Scale(fr_multiplier*fraction_2b1l[i]);
+
+    mc16_tag0_DL1r_mix[i]->Add(mc16_tag0_DL1r[1], fr_multiplier*fraction_4b[i]);
+    mc16_tag0_DL1r_mix[i]->Add(mc16_tag0_DL1r[2], fr_multiplier*fraction_3b[i]);
+    mc16_tag0_DL1r_mix[i]->Add(mc16_tag0_DL1r[3], fr_multiplier*fraction_2b1c[i]);
+
+    mc16_tag1_DL1r_mix[i]->Add(mc16_tag1_DL1r[1], fr_multiplier*fraction_4b[i]);
+    mc16_tag1_DL1r_mix[i]->Add(mc16_tag1_DL1r[2], fr_multiplier*fraction_3b[i]);
+    mc16_tag1_DL1r_mix[i]->Add(mc16_tag1_DL1r[3], fr_multiplier*fraction_2b1c[i]);
+
+    mc16_tag2_DL1r_mix[i]->Add(mc16_tag2_DL1r[1], fr_multiplier*fraction_4b[i]);
+    mc16_tag2_DL1r_mix[i]->Add(mc16_tag2_DL1r[2], fr_multiplier*fraction_3b[i]);
+    mc16_tag2_DL1r_mix[i]->Add(mc16_tag2_DL1r[3], fr_multiplier*fraction_2b1c[i]); }
+
+
+  
+  // Perforn fit of the mixture with histograms
+  // TODO: Fit the mixture with iteself.
+  // TODO: Combine 2b1l, 2b1c and 3b (a combined template for the tree) and fit with two: 4b and comb.templ.
+  // TODO: Combine 2b1l and 2b1c (use a combined template and fit with 3 templates in total)
+  cout << "Deriving fits for mixture scale factor = " << fr_multiplier << endl;
+  vector<TH1*> tag2_fit_results;
+  TH1 *empty_hists = new TH1F("empty_hist", "empty_hist", 30, -15, 15);
+  TObjArray *tag2_weights = new TObjArray(4);
+  for (int topHFFF_i=0; topHFFF_i<4; topHFFF_i++) {
+    mc16_tag2_DL1r[topHFFF_i]->Scale(fr_multiplier); 
+    tag2_weights->Add(mc16_tag2_DL1r[topHFFF_i]); }
+  
+  for (int i=0; i<fraction_2b1l.size(); i++) {
+    cout << "\n\n\n\n" << endl;
+    cout << "Performing fit [" << i << "] for\n\t2b1l frac. = " << fraction_2b1l[i] << ";\n\t4b frac. = " << fraction_4b[i] << ";\n\t3b frac. = " << fraction_3b[i] << ";\n\t2b1c frac. = " << fraction_2b1c[i] << ";" << endl;
+    TFractionFitter *fit = new TFractionFitter(mc16_tag2_DL1r_mix[i], tag2_weights);
+    // fit->Constrain(1, 0.0, 1.0); // constrain fraction 1 to be between 0 and 1
+    fit->SetRangeX(10, 25); // use bins from V1 through V2 in the fit
+    Int_t status = fit->Fit(); // perform the fit
+    
+    if (status==0) { 
+      cout << "Fit [" << i << "] success! STATUS = " << status << endl;
+      tag2_fit_results.push_back( (TH1F*) fit->GetPlot() ); } 
+    else { 
+      cout << "Fit [" << i << "] error! STATUS = " << status << endl; 
+      tag2_fit_results.push_back(empty_hists); } }
+  
+
+  
+  // Draw mixtures and fits on one canvas
+  for (int i=0; i<fraction_2b1l.size(); i++) {
+    TString save_name = "mixrute_fit_result_" + to_string(i);
+    vector<TString> fit_titles = {"mixture", "fit"};
+    vector<TH1*> pair_of_hists  = {mc16_tag2_DL1r_mix[i], tag2_fit_results[i]};
+    int draw_fit_results = draw_n_histos(pair_of_hists, fit_titles, "#bf{3^{rd} DL1r tag weight}", save_name, false, 0.01, fr_multiplier); }
+  
+
+
+  // Work is done, close the hists file
+  hists_file_mc->Close();
+
+}
