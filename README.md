@@ -1,5 +1,5 @@
 # tt+HF analysis macros
-This repository contains some useful mactor for the tt+HF OSU analysis.
+This repository contains some useful mactor for the tt+HF OSU analysis. Macros to be run at lxplus.
 
 ## Prepare a histfile
 To prepare a root file with histograms run:
