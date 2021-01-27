@@ -63,6 +63,24 @@ vector<TString> get_list_of_files(TString dirname, vector<TString> container = {
 
 
 
+// #####################
+// ## Compute delta R ##
+// #####################
+double dR(float phi_1st, float eta_1st, float phi_2nd, float eta_2nd)
+{
+  double dR_val = 0;
+  
+  double dPhi = phi_1st - phi_2nd;
+  double dEta = eta_1st - eta_2nd;
+  
+  if (dPhi > TMath::Pi()) dPhi = 2*TMath::Pi() - dPhi;
+
+  dR_val = sqrt( pow(dPhi,2) + pow(dEta,2) );
+  
+  return dR_val;
+}
+
+
 // ###########################
 // ## Draw a few histograms ##
 // ###########################
@@ -126,10 +144,10 @@ void prepare_histograms()
   // Declare histograms
   
   // dR_min between all bjets/btags and leptons
-  TH1 *mc16_minDeltaR_lep0_bjets_from_top = new TH1F("minDeltaR_lep1_bjets_fromTop", "minDeltaR_lep1_bjets_fromTop", 10, 0, 5);
-  TH1 *mc16_minDeltaR_lep0_bjets_not_from_top = new TH1F("minDeltaR_lep1_bjets_notFromTop", "minDeltaR_lep1_bjets_notFromTop", 10, 0, 5);
-  TH1 *mc16_minDeltaR_lep1_bjets_from_top = new TH1F("minDeltaR_lep2_bjets_fromTop", "minDeltaR_lep2_bjets_fromTop", 10, 0, 5);
-  TH1 *mc16_minDeltaR_lep1_bjets_not_from_top = new TH1F("minDeltaR_lep2_bjets_notFromTop", "minDeltaR_lep2_bjets_notFromTop", 10, 0, 5);
+  TH1 *mc16_minDeltaR_lep0_bjets_from_top = new TH1F("minDeltaR_lep1_bjets_fromTop", "minDeltaR_lep1_bjets_fromTop", 20, 0, 5);
+  TH1 *mc16_minDeltaR_lep0_bjets_not_from_top = new TH1F("minDeltaR_lep1_bjets_notFromTop", "minDeltaR_lep1_bjets_notFromTop", 20, 0, 5);
+  TH1 *mc16_minDeltaR_lep1_bjets_from_top = new TH1F("minDeltaR_lep2_bjets_fromTop", "minDeltaR_lep2_bjets_fromTop", 20, 0, 5);
+  TH1 *mc16_minDeltaR_lep1_bjets_not_from_top = new TH1F("minDeltaR_lep2_bjets_notFromTop", "minDeltaR_lep2_bjets_notFromTop", 20, 0, 5);
   
   // dR_min between the 1st/2nd/3rd bjets/btags and leptons
   TH1 *mc16_minDeltaR_lep0_bjets_from_top_tags[3];
@@ -141,17 +159,27 @@ void prepare_histograms()
       TString title2 = "minDeltaR_lep1_bjets_notFromTop_" + to_string(i) + "_tag";
       TString title3 = "minDeltaR_lep2_bjets_fromTop" + to_string(i) + "_tag";
       TString title4 = "minDeltaR_lep2_bjets_notFromTop" + to_string(i) + "_tag";
-      mc16_minDeltaR_lep0_bjets_from_top_tags[i] = new TH1F(title1, title1, 10, 0, 5);
-      mc16_minDeltaR_lep0_bjets_not_from_top_tags[i] = new TH1F(title2, title2, 10, 0, 5);
-      mc16_minDeltaR_lep1_bjets_from_top_tags[i] = new TH1F(title3, title3, 10, 0, 5);
-      mc16_minDeltaR_lep1_bjets_not_from_top_tags[i] = new TH1F(title4, title4, 10, 0, 5); }
+      mc16_minDeltaR_lep0_bjets_from_top_tags[i] = new TH1F(title1, title1, 20, 0, 5);
+      mc16_minDeltaR_lep0_bjets_not_from_top_tags[i] = new TH1F(title2, title2, 20, 0, 5);
+      mc16_minDeltaR_lep1_bjets_from_top_tags[i] = new TH1F(title3, title3, 20, 0, 5);
+      mc16_minDeltaR_lep1_bjets_not_from_top_tags[i] = new TH1F(title4, title4, 20, 0, 5); }
   
   // dR_min between bjets/btags
-  TH1 *mc16_dR_b0_b1 = new TH1F("mc16_dR_b0_b1", "mc16_dR_b0_b1", 10, 0, 5);
-  TH1 *mc16_dR_b0_b2 = new TH1F("mc16_dR_b0_b2", "mc16_dR_b0_b2", 10, 0, 5);
-  TH1 *mc16_dR_b1_b2 = new TH1F("mc16_dR_b1_b2", "mc16_dR_b1_b2", 10, 0, 5);
-  TH1 *mc16_minDeltaR_b01_b2_from_top = new TH1F("mc16_minDeltaR_b0_b2_from_top", "mc16_minDeltaR_b0_b2_from_top", 10, 0, 5);
-  TH1 *mc16_minDeltaR_b01_b2_not_from_top = new TH1F("mc16_minDeltaR_b01_b2_not_from_top", "mc16_minDeltaR_b01_b2_not_from_top", 10, 0, 5);
+  TH1 *mc16_dR_b0_b1 = new TH1F("mc16_dR_b0_b1", "mc16_dR_b0_b1", 20, 0, 5);
+  TH1 *mc16_dR_b0_b2 = new TH1F("mc16_dR_b0_b2", "mc16_dR_b0_b2", 20, 0, 5);
+  TH1 *mc16_dR_b1_b2 = new TH1F("mc16_dR_b1_b2", "mc16_dR_b1_b2", 20, 0, 5);
+  TH1 *mc16_minDeltaR_b01_b2_from_top = new TH1F("mc16_minDeltaR_b0_b2_from_top", "mc16_minDeltaR_b0_b2_from_top", 20, 0, 5);
+  TH1 *mc16_minDeltaR_b01_b2_not_from_top = new TH1F("mc16_minDeltaR_b01_b2_not_from_top", "mc16_minDeltaR_b01_b2_not_from_top", 20, 0, 5);
+  TH1 *mc16_minDeltaR_b_from_top_to_b = new TH1F("mc16_minDeltaR_b_from_top_to_b", "mc16_minDeltaR_b_from_top_to_b", 20, 0, 5);
+  TH1 *mc16_minDeltaR_b_not_from_top_to_b = new TH1F("mc16_minDeltaR_b_not_from_top_to_b", "mc16_minDeltaR_b_not_from_top_to_b", 20, 0, 5);
+  TH1 *mc16_minDeltaR_not_b_to_b = new TH1F("mc16_minDeltaR_not_b_to_b", "mc16_minDeltaR_not_b_to_b", 20, 0, 5);
+  TH1 *mc16_minDeltaR_b_from_top_to_jet = new TH1F("mc16_minDeltaR_b_from_top_to_jet", "mc16_minDeltaR_b_from_top_to_jet", 20, 0, 5);
+  TH1 *mc16_minDeltaR_b_not_from_top_to_jet = new TH1F("mc16_minDeltaR_b_not_from_top_to_jet", "mc16_minDeltaR_b_not_from_top_to_jet", 20, 0, 5);
+  TH1 *mc16_minDeltaR_not_b_to_jet = new TH1F("mc16_minDeltaR_not_b_to_jet", "mc16_minDeltaR_not_b_to_jet", 20, 0, 5);
+  TH1 *mc16_minDeltaR_b_from_top_to_lep = new TH1F("mc16_minDeltaR_b_from_top_to_lep", "mc16_minDeltaR_b_from_top_to_lep", 20, 0, 5);
+  TH1 *mc16_minDeltaR_b_not_from_top_to_lep = new TH1F("mc16_minDeltaR_b_not_from_top_to_lep", "mc16_minDeltaR_b_not_from_top_to_lep", 20, 0, 5);
+  TH1 *mc16_minDeltaR_not_b_to_lep = new TH1F("mc16_minDeltaR_not_b_to_lep", "mc16_minDeltaR_not_b_to_lep", 20, 0, 5);
+  
   
   // pT of the first three bjets/btags (not)from top
   TH1 *mc16_jet_pT0_from_top = new TH1F("mc16_jet_pT0_from_top", "mc16_jet_pT0_from_top", 10, 0, 500);
@@ -199,7 +227,7 @@ void prepare_histograms()
   TH1 *mc16_lep0_phi = new TH1F("mc16_lep0_phi", "mc16_lep0_phi", 40, -4, 4);
   TH1 *mc16_lep1_phi = new TH1F("mc16_lep1_phi", "mc16_lep1_phi", 40, -4, 4);
   TH1 *mc16_lep_phi = new TH1F("mc16_lep_phi", "mc16_lep_phi", 40, -4, 4);
-  TH1 *mc16_dR_lep0_lep1 = new TH1F("mc16_dR_lep0_lep1", "mc16_dR_lep0_lep1", 10, 0, 5);
+  TH1 *mc16_dR_lep0_lep1 = new TH1F("mc16_dR_lep0_lep1", "mc16_dR_lep0_lep1", 20, 0, 5);
 
 
   // Loop over directories with ntuples collections
@@ -600,8 +628,78 @@ void prepare_histograms()
 		      // Compute dR_lep0_lep1:
 		      dR_lep0_lep1 = sqrt( pow(delta_phi_lep0_lep1, 2) + pow(delta_eta_lep0_lep1, 2) );
 		      mc16_dR_lep0_lep1->Fill(dR_lep0_lep1);
+		      
 
-
+		      // Compute min dR for different combinations of jets (and jet-lepton)
+		      double min_dR_b_from_top_to_b = 2*TMath::Pi();
+		      double min_dR_b_not_from_top_to_b = 2*TMath::Pi();
+		      double min_dR_not_b_to_b = 2*TMath::Pi();
+		      double min_dR_b_from_top_to_jet = 2*TMath::Pi();
+		      double min_dR_b_not_from_top_to_jet = 2*TMath::Pi();
+		      double min_dR_not_b_to_jet = 2*TMath::Pi();
+		      double min_dR_b_from_top_to_lep = 2*TMath::Pi();
+		      double min_dR_b_not_from_top_to_lep = 2*TMath::Pi();
+		      double min_dR_not_b_to_lep = 2*TMath::Pi();
+		      
+		      for (int i=0; i<(*jet_pt).size(); i++) {
+			
+			for (int j=0; j<(*jet_pt).size(); j++) {
+			  if (i==j) continue;
+			  
+			  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4 && (*jet_DL1r_77)[j]==1) {
+			    double dR_b_from_top_to_b = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
+			    if (dR_b_from_top_to_b < min_dR_b_from_top_to_b) min_dR_b_from_top_to_b = dR_b_from_top_to_b; }
+			  
+			  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]==1) {
+			    double dR_b_not_from_top_to_b = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
+			    if (dR_b_not_from_top_to_b < min_dR_b_not_from_top_to_b) min_dR_b_not_from_top_to_b = dR_b_not_from_top_to_b; }
+			  
+			  if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]==1) {
+			    double dR_not_b_to_b = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
+			    if (dR_not_b_to_b < min_dR_not_b_to_b) min_dR_not_b_to_b = dR_not_b_to_b; }
+			  
+			  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4) {
+			    double dR_b_from_top_to_jet = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
+			    if (dR_b_from_top_to_jet < min_dR_b_from_top_to_jet) min_dR_b_from_top_to_jet = dR_b_from_top_to_jet; }
+			  
+			  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4) {
+			    double dR_b_not_from_top_to_jet = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
+			    if (dR_b_not_from_top_to_jet < min_dR_b_not_from_top_to_jet) min_dR_b_not_from_top_to_jet = dR_b_not_from_top_to_jet; }
+			  
+			  if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4) {
+			    double dR_not_b_to_jet = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
+			    if (dR_not_b_to_jet < min_dR_not_b_to_jet) min_dR_not_b_to_jet = dR_not_b_to_jet; }
+			} // loop over jet[j]
+			
+			if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4) {
+			  double dR_b_from_top_to_el = dR((*jet_phi)[i], (*jet_eta)[i], (*el_phi)[0], (*el_eta)[0]);
+			  double dR_b_from_top_to_mu = dR((*jet_phi)[i], (*jet_eta)[i], (*mu_phi)[0], (*mu_eta)[0]);
+			  double dR_b_from_top_to_lep = min(dR_b_from_top_to_el, dR_b_from_top_to_mu);
+			  if (dR_b_from_top_to_lep < min_dR_b_from_top_to_lep) min_dR_b_from_top_to_lep = dR_b_from_top_to_lep; }
+			
+			if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4) {
+			  double dR_b_not_from_top_to_el = dR((*jet_phi)[i], (*jet_eta)[i], (*el_phi)[0], (*el_eta)[0]);
+			  double dR_b_not_from_top_to_mu = dR((*jet_phi)[i], (*jet_eta)[i], (*mu_phi)[0], (*mu_eta)[0]);
+			  double dR_b_not_from_top_to_lep = min(dR_b_not_from_top_to_el, dR_b_not_from_top_to_mu);
+			  if (dR_b_not_from_top_to_lep < min_dR_b_not_from_top_to_lep) min_dR_b_not_from_top_to_lep = dR_b_not_from_top_to_lep; }
+			
+			if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4) {
+			  double dR_not_b_to_el = dR((*jet_phi)[i], (*jet_eta)[i], (*el_phi)[0], (*el_eta)[0]);
+			  double dR_not_b_to_mu = dR((*jet_phi)[i], (*jet_eta)[i], (*mu_phi)[0], (*mu_eta)[0]);
+			  double dR_not_b_to_lep = min(dR_not_b_to_el, dR_not_b_to_mu);
+			  if (dR_not_b_to_lep < min_dR_not_b_to_lep) min_dR_not_b_to_lep = dR_not_b_to_lep; }
+		      } // loop over jet[i]
+		      
+		      mc16_minDeltaR_b_from_top_to_b->Fill(min_dR_b_from_top_to_b, weights);
+		      mc16_minDeltaR_b_not_from_top_to_b->Fill(min_dR_b_not_from_top_to_b, weights);
+		      mc16_minDeltaR_not_b_to_b->Fill(min_dR_not_b_to_b, weights);
+		      mc16_minDeltaR_b_from_top_to_jet->Fill(min_dR_b_from_top_to_jet, weights);
+		      mc16_minDeltaR_b_not_from_top_to_jet->Fill(min_dR_b_not_from_top_to_jet, weights);
+		      mc16_minDeltaR_not_b_to_jet->Fill(min_dR_not_b_to_jet, weights);
+		      mc16_minDeltaR_b_from_top_to_lep->Fill(min_dR_b_from_top_to_lep, weights);
+		      mc16_minDeltaR_b_not_from_top_to_lep->Fill(min_dR_b_not_from_top_to_lep, weights);
+		      mc16_minDeltaR_not_b_to_lep->Fill(min_dR_not_b_to_lep, weights);
+		      
 		      
 		      // Sort jets wrt DL1r tag weights
 		      sort (jet_DL1r->begin(), jet_DL1r->end(), greater<int>());
@@ -783,6 +881,16 @@ void prepare_histograms()
   mc16_lep1_phi->Write("2b_emu_OS_lep1_phi");
   mc16_lep_phi->Write("2b_emu_OS_lep_phi");
   mc16_dR_lep0_lep1->Write("2b_emu_OS_dR_lep0_lep1");
+  
+  mc16_minDeltaR_b_from_top_to_b->Write("2b_emu_OS_mc16_minDeltaR_b_from_top_to_b");
+  mc16_minDeltaR_b_not_from_top_to_b->Write("2b_emu_OS_mc16_minDeltaR_b_not_from_top_to_b");
+  mc16_minDeltaR_not_b_to_b->Write("2b_emu_OS_mc16_minDeltaR_not_b_to_b");
+  mc16_minDeltaR_b_from_top_to_jet->Write("2b_emu_OS_mc16_minDeltaR_b_from_top_to_jet");
+  mc16_minDeltaR_b_not_from_top_to_jet->Write("2b_emu_OS_mc16_minDeltaR_b_not_from_top_to_jet");
+  mc16_minDeltaR_not_b_to_jet->Write("2b_emu_OS_mc16_minDeltaR_not_b_to_jet");
+  mc16_minDeltaR_b_from_top_to_lep->Write("2b_emu_OS_mc16_minDeltaR_b_from_top_to_lep");
+  mc16_minDeltaR_b_not_from_top_to_lep->Write("2b_emu_OS_mc16_minDeltaR_b_not_from_top_to_lep");
+  mc16_minDeltaR_not_b_to_lep->Write("2b_emu_OS_mc16_minDeltaR_not_b_to_lep");
   
   
   // Close the gists file
