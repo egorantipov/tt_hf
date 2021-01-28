@@ -1,0 +1,3 @@
+[submodule "KLFitter"]
+	path = KLFitter
+	url = https://github.com/KLFitter/KLFitter.git
