@@ -524,25 +524,18 @@ void prepare_histograms()
 			  if ( int((*jet_DL1r_77)[jet_i]==1) )
 			  //if ( (*topHadronOriginFlag)[i]!=-99 ) // Particle level
 			    {
-			      // Define initial dR and dPhi(lep, jet)
+			      // Define initial dR's
 			      double dR1 = 0;
 			      double dR2 = 0;
-			      double delta_phi_mu = (*mu_phi)[0] - (*jet_phi)[jet_i];
-                              double delta_phi_el = (*el_phi)[0] - (*jet_phi)[jet_i];
 
-			      
-			      // Adjust dPhi to be not greater than 180 degrees
-			      if (delta_phi_mu > TMath::Pi()) delta_phi_mu = 2*TMath::Pi() - delta_phi_mu;
-			      if (delta_phi_el > TMath::Pi()) delta_phi_el = 2*TMath::Pi() - delta_phi_el;
 
-			      
-			      // Assign dR1 to the leading lep and dR2 to the subleading
+			      // Assign dR1 to the leading lep and dR2 to the subleading 
 			      if ((*mu_pt)[0]>(*el_pt)[0]) {
-				dR1 = sqrt( pow(delta_phi_mu, 2) + pow( (*mu_eta)[0] - (*jet_eta)[jet_i], 2) );
-				dR2 = sqrt( pow(delta_phi_el, 2) + pow( (*el_eta)[0] - (*jet_eta)[jet_i], 2) ); }
-                              else {
-				dR1 = sqrt( pow(delta_phi_el, 2) + pow( (*el_eta)[0] - (*jet_eta)[jet_i], 2) );
-				dR2 = sqrt( pow(delta_phi_mu, 2) + pow( (*mu_eta)[0] - (*jet_eta)[jet_i], 2) ); }
+				dR1 = dR((*mu_phi)[0], (*mu_eta)[0], (*jet_phi)[jet_i], (*jet_eta)[jet_i]);
+				dR2 = dR((*el_phi)[0], (*el_eta)[0], (*jet_phi)[jet_i], (*jet_eta)[jet_i]); }
+			      else {
+				dR1 = dR((*el_phi)[0], (*el_eta)[0], (*jet_phi)[jet_i], (*jet_eta)[jet_i]);
+				dR2 = dR((*mu_phi)[0], (*mu_eta)[0], (*jet_phi)[jet_i], (*jet_eta)[jet_i]); }
 
 
 			      // Sort into two cases: from top and not from top
@@ -617,29 +610,22 @@ void prepare_histograms()
 		      mc16_lep_phi->Fill((*el_phi)[0]);
 		      mc16_lep_phi->Fill((*mu_phi)[0]);
 		      
-		      // Initiate variables for dR_lep0_lep1 computation:
-		      double dR_lep0_lep1 = 0;
-		      double delta_phi_lep0_lep1 = (*el_phi)[0] - (*mu_phi)[0];
-		      double delta_eta_lep0_lep1 = (*el_eta)[0] - (*mu_eta)[0];
 		      
-		      // Adjust dPhi to be not greater than 180 degrees:
-		      if (delta_phi_lep0_lep1 > TMath::Pi()) delta_phi_lep0_lep1 = 2*TMath::Pi() - delta_phi_lep0_lep1;
-		      
-		      // Compute dR_lep0_lep1:
-		      dR_lep0_lep1 = sqrt( pow(delta_phi_lep0_lep1, 2) + pow(delta_eta_lep0_lep1, 2) );
+		      // dR_lep0_lep1 hist:
+		      double dR_lep0_lep1 = dR((*el_phi)[0], (*el_eta)[0], (*mu_phi)[0], (*mu_eta)[0]);
 		      mc16_dR_lep0_lep1->Fill(dR_lep0_lep1);
 		      
 
-		      // Compute min dR for different combinations of jets (and jet-lepton)
-		      double min_dR_b_from_top_to_b = 2*TMath::Pi();
-		      double min_dR_b_not_from_top_to_b = 2*TMath::Pi();
-		      double min_dR_not_b_to_b = 2*TMath::Pi();
-		      double min_dR_b_from_top_to_jet = 2*TMath::Pi();
-		      double min_dR_b_not_from_top_to_jet = 2*TMath::Pi();
-		      double min_dR_not_b_to_jet = 2*TMath::Pi();
-		      double min_dR_b_from_top_to_lep = 2*TMath::Pi();
-		      double min_dR_b_not_from_top_to_lep = 2*TMath::Pi();
-		      double min_dR_not_b_to_lep = 2*TMath::Pi();
+		      // Compute min dR for different jet-obj combinations
+		      double min_dR_b_from_top_to_b = 999999.;
+		      double min_dR_b_not_from_top_to_b = 999999.;
+		      double min_dR_not_b_to_b = 999999.;
+		      double min_dR_b_from_top_to_jet = 999999.;
+		      double min_dR_b_not_from_top_to_jet = 999999.;
+		      double min_dR_not_b_to_jet = 999999.;
+		      double min_dR_b_from_top_to_lep = 999999.;
+		      double min_dR_b_not_from_top_to_lep = 999999.;
+		      double min_dR_not_b_to_lep = 999999.;
 		      
 		      for (int i=0; i<(*jet_pt).size(); i++) {
 			
@@ -732,25 +718,15 @@ void prepare_histograms()
 		      // Loop over jets to compute min_dR
 		      for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++)
 			{
-			  // Define initial dR and dPhi(lep, jet)
+			  // Compute dR and assign to the corresponding leptons
 			  double dR0 = 0;
 			  double dR1 = 0;
-			  double delta_phi_mu = (*mu_phi)[0] - (*jet_phi)[jet_i];
-			  double delta_phi_el = (*el_phi)[0] - (*jet_phi)[jet_i];
-
-			  
-			  // Adjust dPhi to be not greater than 180 degrees
-			  if (delta_phi_mu > TMath::Pi()) delta_phi_mu = 2*TMath::Pi() - delta_phi_mu;
-			  if (delta_phi_el > TMath::Pi()) delta_phi_el = 2*TMath::Pi() - delta_phi_el;
-
-
-			  // Assign dR1 to the leading lep and dR2 to the subleading
 			  if ((*mu_pt)[0]>(*el_pt)[0]) {
-			    dR0 = sqrt( pow(delta_phi_mu, 2) + pow( (*mu_eta)[0] - (*jet_eta)[jet_i], 2) );
-			    dR1 = sqrt( pow(delta_phi_el, 2) + pow( (*el_eta)[0] - (*jet_eta)[jet_i], 2) ); }
+			    dR0 = dR((*mu_phi)[0], (*mu_eta)[0], (*jet_phi)[jet_i], (*jet_eta)[jet_i]);
+			    dR1 = dR((*el_phi)[0], (*el_eta)[0], (*jet_phi)[jet_i], (*jet_eta)[jet_i]); }
 			  else {
-			    dR0 = sqrt( pow(delta_phi_el, 2) + pow( (*el_eta)[0] - (*jet_eta)[jet_i], 2) );
-			    dR1 = sqrt( pow(delta_phi_mu, 2) + pow( (*mu_eta)[0] - (*jet_eta)[jet_i], 2) ); }
+			    dR0 = dR((*el_phi)[0], (*el_eta)[0], (*jet_phi)[jet_i], (*jet_eta)[jet_i]);
+			    dR1 = dR((*mu_phi)[0], (*mu_eta)[0], (*jet_phi)[jet_i], (*jet_eta)[jet_i]); }
 
 
 			  // Sort into two cases: from top and not from top
@@ -782,25 +758,14 @@ void prepare_histograms()
 		      double min_dR_b01_b2_from_top = 0;
 		      double min_dR_b01_b2_not_from_top = 0;
 		      
-		      double delta_eta_b0_b1 = (*jet_eta)[0] - (*jet_eta)[1];
-                      double delta_eta_b0_b2 = (*jet_eta)[0] - (*jet_eta)[2];
-                      double delta_eta_b1_b2 = (*jet_eta)[1] - (*jet_eta)[2];
-		      double delta_phi_b0_b1 = (*jet_phi)[0] - (*jet_phi)[1];
-		      double delta_phi_b0_b2 = (*jet_phi)[0] - (*jet_phi)[2];
-		      double delta_phi_b1_b2 = (*jet_phi)[1] - (*jet_phi)[2];
-
-		      // Adjust dPhi to be not greater than 180 degrees:
-		      if (delta_phi_b0_b1 > TMath::Pi()) delta_phi_b0_b1 = 2*TMath::Pi() - delta_phi_b0_b1;
-		      if (delta_phi_b0_b2 > TMath::Pi()) delta_phi_b0_b2 = 2*TMath::Pi() - delta_phi_b0_b2;
-		      if (delta_phi_b1_b2 > TMath::Pi()) delta_phi_b1_b2 = 2*TMath::Pi() - delta_phi_b1_b2;
-
 		      // Compute dR between bjets/btags and fill hists:
-		      dR_b0_b1 = sqrt( pow(delta_phi_b0_b1, 2) + pow(delta_eta_b0_b1, 2) );
-		      dR_b0_b2 = sqrt( pow(delta_phi_b0_b2, 2) + pow(delta_eta_b0_b2, 2) );
-		      dR_b1_b2 = sqrt( pow(delta_phi_b1_b2, 2) + pow(delta_eta_b1_b2, 2) );
+		      dR_b0_b1 = dR((*jet_phi)[0], (*jet_eta)[0], (*jet_phi)[1], (*jet_eta)[1]);
+		      dR_b0_b2 = dR((*jet_phi)[0], (*jet_eta)[0], (*jet_phi)[2], (*jet_eta)[2]);
+		      dR_b1_b2 = dR((*jet_phi)[1], (*jet_eta)[1], (*jet_phi)[2], (*jet_eta)[2]);
 		      mc16_dR_b0_b1->Fill(dR_b0_b1);
 		      mc16_dR_b0_b2->Fill(dR_b0_b2);
 		      mc16_dR_b1_b2->Fill(dR_b1_b2);
+		      
 		      // Assuming the 3rd btag is additional:
 		      if ((*topHadronOriginFlag)[2]==4) { mc16_minDeltaR_b01_b2_from_top->Fill(min(dR_b0_b2, dR_b1_b2)); }
 		      else if ((*topHadronOriginFlag)[2]!=-99) { mc16_minDeltaR_b01_b2_not_from_top->Fill(min(dR_b0_b2, dR_b1_b2)); }
