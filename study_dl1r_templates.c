@@ -115,10 +115,10 @@ void study_dl1r_templates()
   TH1 *mc16_tag1_DL1r_mix[9];
   TH1 *mc16_tag2_DL1r_mix[9];
   double fr_multiplier = 1;
-  vector<double> fraction_2b1l = {0.60, 0.60, 0.60, 0.70, 0.70, 0.70, 0.80, 0.80, 0.80};
-  vector<double> fraction_4b   = {0.05, 0.10, 0.15, 0.03, 0.07, 0.10, 0.03, 0.05, 0.07};
-  vector<double> fraction_3b   = {0.05, 0.10, 0.15, 0.03, 0.07, 0.10, 0.03, 0.05, 0.07};
-  vector<double> fraction_2b1c = {0.30, 0.20, 0.10, 0.24, 0.16, 0.10, 0.14, 0.10, 0.06};
+  vector<double> fraction_2b1l = {0.30, 0.30, 0.30, 0.35, 0.35, 0.35, 0.40, 0.40, 0.40};
+  vector<double> fraction_4b   = {0.15, 0.15, 0.10, 0.15, 0.10, 0.10, 0.10, 0.10, 0.10};
+  vector<double> fraction_3b   = {0.30, 0.25, 0.25, 0.25, 0.25, 0.20, 0.25, 0.20, 0.15};
+  vector<double> fraction_2b1c = {0.25, 0.30, 0.35, 0.25, 0.30, 0.35, 0.25, 0.30, 0.35};
   for (int i=0; i<fraction_2b1l.size(); i++) {
     mc16_tag0_DL1r_mix[i] = (TH1F*)mc16_tag0_DL1r[0]->Clone();
     mc16_tag0_DL1r_mix[i]->Scale(fr_multiplier*fraction_2b1l[i]);
@@ -142,18 +142,16 @@ void study_dl1r_templates()
 
   
   // Perforn fit of the mixture with histograms
-  // TODO: Fit the mixture with iteself.
-  // TODO: Combine 2b1l, 2b1c and 3b (a combined template for the tree) and fit with two: 4b and comb.templ.
-  // TODO: Combine 2b1l and 2b1c (use a combined template and fit with 3 templates in total)
   cout << "Deriving fits for mixture scale factor = " << fr_multiplier << endl;
   vector<TH1*> tag2_fit_results;
   TH1 *empty_hists = new TH1F("empty_hist", "empty_hist", 30, -15, 15);
-  TObjArray *tag2_templates = new TObjArray(4);
+  TObjArray *tag2_4_templates = new TObjArray(4);
   for (int topHFFF_i=0; topHFFF_i<4; topHFFF_i++) {
     //mc16_tag2_DL1r[topHFFF_i]->Scale(fr_multiplier);
-    tag2_templates->Add(mc16_tag2_DL1r[topHFFF_i]); }
+    tag2_4_templates->Add(mc16_tag2_DL1r[topHFFF_i]); }
 
-  // Create a combined templates
+  // Create combined templates
+  // (1) 3b+2b1l+2b1c, (2) 4b
   TH1 *combined_2b1l_3b_2b1c_template = new TH1F("combined_2b+3b", "combined_2b+3b", 30, -15, 15);
   combined_2b1l_3b_2b1c_template->Add(mc16_tag2_DL1r[0]); // 2b1l
   combined_2b1l_3b_2b1c_template->Add(mc16_tag2_DL1r[2]); // 3b
@@ -161,13 +159,15 @@ void study_dl1r_templates()
   TObjArray *tag2_2_templates = new TObjArray(2);
   tag2_2_templates->Add(combined_2b1l_3b_2b1c_template);
   tag2_2_templates->Add(mc16_tag2_DL1r[1]);
-  TH1 *combined_2b1l_2b1c_template = new TH1F("combined_2b", "combined_2b", 30, -15, 15);
-  combined_2b1l_2b1c_template->Add(mc16_tag2_DL1r[0]); // 2b1l
-  combined_2b1l_2b1c_template->Add(mc16_tag2_DL1r[3]); // 2b1c
+  
+  // (1) 4b+3b, (2) 2b1l, (3) 2b1c
+  TH1 *combined_4b_3b_template = new TH1F("combined_extra_b", "combined_extra_b", 30, -15, 15);
+  combined_4b_3b_template->Add(mc16_tag2_DL1r[1]); // 4b
+  combined_4b_3b_template->Add(mc16_tag2_DL1r[2]); // 3b
   TObjArray *tag2_3_templates = new TObjArray(3);
-  tag2_3_templates->Add(combined_2b1l_2b1c_template);
-  tag2_3_templates->Add(mc16_tag2_DL1r[1]);
-  tag2_3_templates->Add(mc16_tag2_DL1r[2]);
+  tag2_3_templates->Add(mc16_tag2_DL1r[0]);
+  tag2_3_templates->Add(combined_4b_3b_template);
+  tag2_3_templates->Add(mc16_tag2_DL1r[3]);
   
   for (int i=0; i<fraction_2b1l.size(); i++) {
     cout << "\n\n\n\n" << endl;
@@ -175,11 +175,11 @@ void study_dl1r_templates()
     TObjArray *tag2_self_template = new TObjArray(1);
     tag2_self_template->Add(mc16_tag2_DL1r_mix[i]);
     tag2_self_template->Add(mc16_tag2_DL1r_mix[i]);
-    //TFractionFitter *fit = new TFractionFitter(mc16_tag2_DL1r_mix[i], tag2_templates);
+    //TFractionFitter *fit = new TFractionFitter(mc16_tag2_DL1r_mix[i], tag2_4_templates);
     //TFractionFitter *fit = new TFractionFitter(mc16_tag2_DL1r_mix[i], tag2_self_template);
     //TFractionFitter *fit = new TFractionFitter(mc16_tag2_DL1r_mix[i], tag2_2_templates);
     TFractionFitter *fit = new TFractionFitter(mc16_tag2_DL1r_mix[i], tag2_3_templates);
-    fit->Constrain(0, 0.0, 100.0); // constrain fraction 1 to be between 0 and 1
+    fit->Constrain(0, 0.0, 100.0); // constrain fraction 1 to be between 0 and 100
     fit->Constrain(1, 0.0, 100.0);
     fit->Constrain(2, 0.0, 100.0);
     //fit->Constrain(3, 0.0, 100.0);
