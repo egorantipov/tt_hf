@@ -68,7 +68,7 @@ int draw_n_histos(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_ti
   
   legend->Draw("same");
   
-  c->Print("Plots/" + title + ".png");
+  c->Print("Plots/fits/" + title + ".png");
   cout << "Drawn " + title + " !" << endl;
   
   return 0;
