@@ -43,21 +43,18 @@ vector<TString> get_list_of_files(TString dirname, vector<TString> container = {
 {
   TSystemDirectory dir(dirname, dirname);
   TList *files = dir.GetListOfFiles();
-  if (files)
-    {
-      TSystemFile *file;
-      TString fname;
-      TIter next(files);
-      while ((file=(TSystemFile*)next()))
-        {
-          fname = file->GetName();
-          if (fname != "." && fname != "..")
-            {
-              if (fname.EndsWith(".root")) { container.push_back(dirname + fname); }
-              else { container.push_back(dirname + fname + "/"); }
-            }
-        }
+  if (files) {
+    TSystemFile *file;
+    TString fname;
+    TIter next(files);
+    while ((file=(TSystemFile*)next())) {
+      fname = file->GetName();
+      if (fname != "." && fname != "..") {
+	if (fname.EndsWith(".root")) { container.push_back(dirname + fname); }
+	else { container.push_back(dirname + fname + "/"); }
+      }
     }
+  }
   return container;
 }
 
@@ -78,55 +75,6 @@ double dR(float phi_1st, float eta_1st, float phi_2nd, float eta_2nd)
   dR_val = sqrt( pow(dPhi,2) + pow(dEta,2) );
   
   return dR_val;
-}
-
-
-// ###########################
-// ## Draw a few histograms ##
-// ###########################
-int draw_n_histos(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_title, TString title, bool normalize=false)
-{
-  // Draws N histogram on one canvas (not stacked)
-  TCanvas *c = new TCanvas(h_title[0], h_title[0], 1600, 900);
-  gStyle->SetOptStat(0);
-  gPad->SetGrid();
-  if (normalize==false) gPad->SetLogy();
-  double legend_height = 0.09*h_vec.size();
-  double legend_y1 = 0.90 - legend_height;
-  TLegend *legend = new TLegend(0.80, legend_y1, 0.90, 0.90);
-
-  for (int i=0; i<h_vec.size(); i++) {
-    double sf = 1/h_vec[i]->Integral(0, h_vec[i]->GetNbinsX());
-    
-    h_vec[i]->SetMarkerStyle(20);
-    h_vec[i]->SetMarkerSize(2);
-    h_vec[i]->SetMarkerColor(i+1);
-    h_vec[i]->SetLineColor(i+1);
-    h_vec[i]->SetLineWidth(2);
-    if (normalize==true) h_vec[i]->Scale(sf);
-    
-    if (i==0) {
-      h_vec[i]->Draw("C");
-      h_vec[i]->SetTitle(title);
-      
-      if (normalize==false) {
-	h_vec[i]->GetYaxis()->SetRangeUser(1, 10000);
-	h_vec[i]->GetYaxis()->SetTitle("#bf{Events}"); }
-      
-      else {
-	h_vec[i]->GetYaxis()->SetRangeUser(0, 1.1);
-	h_vec[i]->GetYaxis()->SetTitle("#bf{Events norm to 1}"); }
-      
-      h_vec[i]->GetXaxis()->SetTitle(x_axis_title); }
-    
-    else { h_vec[i]->Draw("same C"); }
-    legend->AddEntry(h_vec[i], h_title[i]);
-  }
-  legend->Draw("same");
-
-  c->Print("Plots/" + title + ".png");
-
-  return 0;
 }
 
 
@@ -229,6 +177,9 @@ void prepare_histograms()
   TH1 *mc16_lep_phi = new TH1F("mc16_lep_phi", "mc16_lep_phi", 40, -4, 4);
   TH1 *mc16_dR_lep0_lep1 = new TH1F("mc16_dR_lep0_lep1", "mc16_dR_lep0_lep1", 20, 0, 5);
 
+  // number of jets from top
+  TH1 *mc16_njets_from_top = new TH1f("m16_njets_from_top", "m16_njets_from_top", 4, 0, 4);
+  
 
   // Loop over directories with ntuples collections
   for (int dir_counter=0; dir_counter<dir_paths.size(); dir_counter++)
@@ -313,18 +264,19 @@ void prepare_histograms()
 
 	      // Set all the needed branches
 	      vector<Float_t> *jet_pt, *jet_DL1r, *jet_eta, *jet_phi, *mu_pt, *mu_eta, *mu_phi, *mu_charge, *el_pt, *el_eta, *el_phi, *el_charge;
-	      vector<int> *topHadronOriginFlag;
+	      vector<int> *topHadronOriginFlag, *jet_truthflav;
 	      vector<char> *jet_DL1r_77;
 	      jet_pt = jet_DL1r = jet_eta = jet_phi = mu_pt = mu_eta = mu_phi = mu_charge = el_pt = el_eta = el_phi = el_charge = 0;
-	      topHadronOriginFlag = 0;
+	      topHadronOriginFlag = jet_truthflav = 0;
 	      jet_DL1r_77 = 0;
 	      Float_t met, met_phi;
 	      tree_nominal->SetBranchAddress("jet_pt", &jet_pt);
               tree_nominal->SetBranchAddress("jet_eta", &jet_eta);
               tree_nominal->SetBranchAddress("jet_phi", &jet_phi);
               tree_nominal->SetBranchAddress("jet_DL1r", &jet_DL1r);
-              tree_nominal->SetBranchAddress("jet_isbtagged_DL1r_77", &jet_DL1r_77);
-              tree_nominal->SetBranchAddress("el_pt", &el_pt);
+	      tree_nominal->SetBranchAddress("jet_isbtagged_DL1r_77", &jet_DL1r_77);
+              tree_nominal->SetBranchAddress("jet_truthflav", &jet_truthflav);
+	      tree_nominal->SetBranchAddress("el_pt", &el_pt);
               tree_nominal->SetBranchAddress("el_eta", &el_eta);
               tree_nominal->SetBranchAddress("el_phi", &el_phi);
               tree_nominal->SetBranchAddress("el_charge", &el_charge);
@@ -528,7 +480,6 @@ void prepare_histograms()
 			      double dR1 = 0;
 			      double dR2 = 0;
 
-
 			      // Assign dR1 to the leading lep and dR2 to the subleading 
 			      if ((*mu_pt)[0]>(*el_pt)[0]) {
 				dR1 = dR((*mu_phi)[0], (*mu_eta)[0], (*jet_phi)[jet_i], (*jet_eta)[jet_i]);
@@ -536,7 +487,6 @@ void prepare_histograms()
 			      else {
 				dR1 = dR((*el_phi)[0], (*el_eta)[0], (*jet_phi)[jet_i], (*jet_eta)[jet_i]);
 				dR2 = dR((*mu_phi)[0], (*mu_eta)[0], (*jet_phi)[jet_i], (*jet_eta)[jet_i]); }
-
 
 			      // Sort into two cases: from top and not from top
 			      // Fill pT histograms
@@ -616,6 +566,10 @@ void prepare_histograms()
 		      mc16_dR_lep0_lep1->Fill(dR_lep0_lep1);
 		      
 
+		      // Declare a value for n jets from top
+		      int njets_from_top = 0;
+
+
 		      // Compute min dR for different jet-obj combinations
 		      double min_dR_b_from_top_to_b = 999999.;
 		      double min_dR_b_not_from_top_to_b = 999999.;
@@ -632,49 +586,56 @@ void prepare_histograms()
 			for (int j=0; j<(*jet_pt).size(); j++) {
 			  if (i==j) continue;
 			  
-			  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4 && (*jet_DL1r_77)[j]==1) {
+			  // dR 
+			  if ((*jet_truthflav)[i]==5 && (*topHadronOriginFlag)[i]==4 && (*jet_truthflav)[j]==5) {
 			    double dR_b_from_top_to_b = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
 			    if (dR_b_from_top_to_b < min_dR_b_from_top_to_b) min_dR_b_from_top_to_b = dR_b_from_top_to_b; }
 			  
-			  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]==1) {
+			  if ((*jet_truthflav)[i]==5 && (*topHadronOriginFlag)[i]!=4 && (*jet_truthflav)[j]==5) {
 			    double dR_b_not_from_top_to_b = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
 			    if (dR_b_not_from_top_to_b < min_dR_b_not_from_top_to_b) min_dR_b_not_from_top_to_b = dR_b_not_from_top_to_b; }
 			  
-			  if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]==1) {
+			  if ((*jet_truthflav)[i]!=5 && (*topHadronOriginFlag)[i]!=4 && (*jet_truthflav)[j]==5) {
 			    double dR_not_b_to_b = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
 			    if (dR_not_b_to_b < min_dR_not_b_to_b) min_dR_not_b_to_b = dR_not_b_to_b; }
 			  
-			  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4) {
+			  if ((*jet_truthflav)[i]==5 && (*topHadronOriginFlag)[i]==4) {
 			    double dR_b_from_top_to_jet = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
 			    if (dR_b_from_top_to_jet < min_dR_b_from_top_to_jet) min_dR_b_from_top_to_jet = dR_b_from_top_to_jet; }
 			  
-			  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4) {
+			  if ((*jet_truthflav)[i]==5 && (*topHadronOriginFlag)[i]!=4) {
 			    double dR_b_not_from_top_to_jet = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
 			    if (dR_b_not_from_top_to_jet < min_dR_b_not_from_top_to_jet) min_dR_b_not_from_top_to_jet = dR_b_not_from_top_to_jet; }
 			  
-			  if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4) {
+			  if ((*jet_truthflav)[i]!=5 && (*topHadronOriginFlag)[i]!=4) {
 			    double dR_not_b_to_jet = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
 			    if (dR_not_b_to_jet < min_dR_not_b_to_jet) min_dR_not_b_to_jet = dR_not_b_to_jet; }
 			} // loop over jet[j]
 			
-			if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4) {
+			if ((*jet_truthFlav)[i]==1 && (*topHadronOriginFlag)[i]==4) {
 			  double dR_b_from_top_to_el = dR((*jet_phi)[i], (*jet_eta)[i], (*el_phi)[0], (*el_eta)[0]);
 			  double dR_b_from_top_to_mu = dR((*jet_phi)[i], (*jet_eta)[i], (*mu_phi)[0], (*mu_eta)[0]);
 			  double dR_b_from_top_to_lep = min(dR_b_from_top_to_el, dR_b_from_top_to_mu);
 			  if (dR_b_from_top_to_lep < min_dR_b_from_top_to_lep) min_dR_b_from_top_to_lep = dR_b_from_top_to_lep; }
 			
-			if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4) {
+			if ((*jet_truthFlav)[i]==1 && (*topHadronOriginFlag)[i]!=4) {
 			  double dR_b_not_from_top_to_el = dR((*jet_phi)[i], (*jet_eta)[i], (*el_phi)[0], (*el_eta)[0]);
 			  double dR_b_not_from_top_to_mu = dR((*jet_phi)[i], (*jet_eta)[i], (*mu_phi)[0], (*mu_eta)[0]);
 			  double dR_b_not_from_top_to_lep = min(dR_b_not_from_top_to_el, dR_b_not_from_top_to_mu);
 			  if (dR_b_not_from_top_to_lep < min_dR_b_not_from_top_to_lep) min_dR_b_not_from_top_to_lep = dR_b_not_from_top_to_lep; }
 			
-			if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4) {
+			if ((*jet_truthFlav)[i]!=1 && (*topHadronOriginFlag)[i]!=4) {
 			  double dR_not_b_to_el = dR((*jet_phi)[i], (*jet_eta)[i], (*el_phi)[0], (*el_eta)[0]);
 			  double dR_not_b_to_mu = dR((*jet_phi)[i], (*jet_eta)[i], (*mu_phi)[0], (*mu_eta)[0]);
 			  double dR_not_b_to_lep = min(dR_not_b_to_el, dR_not_b_to_mu);
 			  if (dR_not_b_to_lep < min_dR_not_b_to_lep) min_dR_not_b_to_lep = dR_not_b_to_lep; }
+
+			// Count number of jets from top
+			if ((*topHadronOriginFlag)[i]==4) njets_from_top++;
+			
 		      } // loop over jet[i]
+
+		      mc16_njets_from_top->Fill(njets_from_top, weights);
 		      
 		      mc16_minDeltaR_b_from_top_to_b->Fill(min_dR_b_from_top_to_b, weights);
 		      mc16_minDeltaR_b_not_from_top_to_b->Fill(min_dR_b_not_from_top_to_b, weights);
@@ -857,6 +818,7 @@ void prepare_histograms()
   mc16_minDeltaR_b_not_from_top_to_lep->Write("2b_emu_OS_mc16_minDeltaR_b_not_from_top_to_lep");
   mc16_minDeltaR_not_b_to_lep->Write("2b_emu_OS_mc16_minDeltaR_not_b_to_lep");
   
+  mc16_njets_from_top->Write("2b_emu_OS_njets_from_top");
   
   // Close the gists file
   hists_file->Close();
