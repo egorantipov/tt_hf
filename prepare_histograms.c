@@ -177,6 +177,9 @@ void prepare_histograms()
   TH1 *mc16_lep_phi = new TH1F("mc16_lep_phi", "mc16_lep_phi", 40, -4, 4);
   TH1 *mc16_dR_lep0_lep1 = new TH1F("mc16_dR_lep0_lep1", "mc16_dR_lep0_lep1", 20, 0, 5);
 
+  // number of jets from top
+  TH1 *mc16_njets_from_top = new TH1f("m16_njets_from_top", "m16_njets_from_top", 4, 0, 4);
+  
 
   // Loop over directories with ntuples collections
   for (int dir_counter=0; dir_counter<dir_paths.size(); dir_counter++)
@@ -563,6 +566,10 @@ void prepare_histograms()
 		      mc16_dR_lep0_lep1->Fill(dR_lep0_lep1);
 		      
 
+		      // Declare a value for n jets from top
+		      int njets_from_top = 0;
+
+
 		      // Compute min dR for different jet-obj combinations
 		      double min_dR_b_from_top_to_b = 999999.;
 		      double min_dR_b_not_from_top_to_b = 999999.;
@@ -580,49 +587,55 @@ void prepare_histograms()
 			  if (i==j) continue;
 			  
 			  // dR 
-			  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4 && (*jet_DL1r_77)[j]==1) {
+			  if ((*jet_truthflav)[i]==5 && (*topHadronOriginFlag)[i]==4 && (*jet_truthflav)[j]==5) {
 			    double dR_b_from_top_to_b = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
 			    if (dR_b_from_top_to_b < min_dR_b_from_top_to_b) min_dR_b_from_top_to_b = dR_b_from_top_to_b; }
 			  
-			  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]==1) {
+			  if ((*jet_truthflav)[i]==5 && (*topHadronOriginFlag)[i]!=4 && (*jet_truthflav)[j]==5) {
 			    double dR_b_not_from_top_to_b = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
 			    if (dR_b_not_from_top_to_b < min_dR_b_not_from_top_to_b) min_dR_b_not_from_top_to_b = dR_b_not_from_top_to_b; }
 			  
-			  if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4 && (*jet_DL1r_77)[j]==1) {
+			  if ((*jet_truthflav)[i]!=5 && (*topHadronOriginFlag)[i]!=4 && (*jet_truthflav)[j]==5) {
 			    double dR_not_b_to_b = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
 			    if (dR_not_b_to_b < min_dR_not_b_to_b) min_dR_not_b_to_b = dR_not_b_to_b; }
 			  
-			  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4) {
+			  if ((*jet_truthflav)[i]==5 && (*topHadronOriginFlag)[i]==4) {
 			    double dR_b_from_top_to_jet = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
 			    if (dR_b_from_top_to_jet < min_dR_b_from_top_to_jet) min_dR_b_from_top_to_jet = dR_b_from_top_to_jet; }
 			  
-			  if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4) {
+			  if ((*jet_truthflav)[i]==5 && (*topHadronOriginFlag)[i]!=4) {
 			    double dR_b_not_from_top_to_jet = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
 			    if (dR_b_not_from_top_to_jet < min_dR_b_not_from_top_to_jet) min_dR_b_not_from_top_to_jet = dR_b_not_from_top_to_jet; }
 			  
-			  if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4) {
+			  if ((*jet_truthflav)[i]!=5 && (*topHadronOriginFlag)[i]!=4) {
 			    double dR_not_b_to_jet = dR((*jet_phi)[i], (*jet_eta)[i], (*jet_phi)[j], (*jet_eta)[j]);
 			    if (dR_not_b_to_jet < min_dR_not_b_to_jet) min_dR_not_b_to_jet = dR_not_b_to_jet; }
 			} // loop over jet[j]
 			
-			if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]==4) {
+			if ((*jet_truthFlav)[i]==1 && (*topHadronOriginFlag)[i]==4) {
 			  double dR_b_from_top_to_el = dR((*jet_phi)[i], (*jet_eta)[i], (*el_phi)[0], (*el_eta)[0]);
 			  double dR_b_from_top_to_mu = dR((*jet_phi)[i], (*jet_eta)[i], (*mu_phi)[0], (*mu_eta)[0]);
 			  double dR_b_from_top_to_lep = min(dR_b_from_top_to_el, dR_b_from_top_to_mu);
 			  if (dR_b_from_top_to_lep < min_dR_b_from_top_to_lep) min_dR_b_from_top_to_lep = dR_b_from_top_to_lep; }
 			
-			if ((*jet_DL1r_77)[i]==1 && (*topHadronOriginFlag)[i]!=4) {
+			if ((*jet_truthFlav)[i]==1 && (*topHadronOriginFlag)[i]!=4) {
 			  double dR_b_not_from_top_to_el = dR((*jet_phi)[i], (*jet_eta)[i], (*el_phi)[0], (*el_eta)[0]);
 			  double dR_b_not_from_top_to_mu = dR((*jet_phi)[i], (*jet_eta)[i], (*mu_phi)[0], (*mu_eta)[0]);
 			  double dR_b_not_from_top_to_lep = min(dR_b_not_from_top_to_el, dR_b_not_from_top_to_mu);
 			  if (dR_b_not_from_top_to_lep < min_dR_b_not_from_top_to_lep) min_dR_b_not_from_top_to_lep = dR_b_not_from_top_to_lep; }
 			
-			if ((*jet_DL1r_77)[i]!=1 && (*topHadronOriginFlag)[i]!=4) {
+			if ((*jet_truthFlav)[i]!=1 && (*topHadronOriginFlag)[i]!=4) {
 			  double dR_not_b_to_el = dR((*jet_phi)[i], (*jet_eta)[i], (*el_phi)[0], (*el_eta)[0]);
 			  double dR_not_b_to_mu = dR((*jet_phi)[i], (*jet_eta)[i], (*mu_phi)[0], (*mu_eta)[0]);
 			  double dR_not_b_to_lep = min(dR_not_b_to_el, dR_not_b_to_mu);
 			  if (dR_not_b_to_lep < min_dR_not_b_to_lep) min_dR_not_b_to_lep = dR_not_b_to_lep; }
+
+			// Count number of jets from top
+			if ((*topHadronOriginFlag)[i]==4) njets_from_top++;
+			
 		      } // loop over jet[i]
+
+		      mc16_njets_from_top->Fill(njets_from_top, weights);
 		      
 		      mc16_minDeltaR_b_from_top_to_b->Fill(min_dR_b_from_top_to_b, weights);
 		      mc16_minDeltaR_b_not_from_top_to_b->Fill(min_dR_b_not_from_top_to_b, weights);
@@ -805,6 +818,7 @@ void prepare_histograms()
   mc16_minDeltaR_b_not_from_top_to_lep->Write("2b_emu_OS_mc16_minDeltaR_b_not_from_top_to_lep");
   mc16_minDeltaR_not_b_to_lep->Write("2b_emu_OS_mc16_minDeltaR_not_b_to_lep");
   
+  mc16_njets_from_top->Write("2b_emu_OS_njets_from_top");
   
   // Close the gists file
   hists_file->Close();

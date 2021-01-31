@@ -164,6 +164,7 @@ void study_dl1r_templates()
   TH1 *combined_4b_3b_template = new TH1F("combined_extra_b", "combined_extra_b", 30, -15, 15);
   combined_4b_3b_template->Add(mc16_tag2_DL1r[1]); // 4b
   combined_4b_3b_template->Add(mc16_tag2_DL1r[2]); // 3b
+  combined_4b_3b_template->Scale(0.5);
   TObjArray *tag2_3_templates = new TObjArray(3);
   tag2_3_templates->Add(mc16_tag2_DL1r[0]);
   tag2_3_templates->Add(combined_4b_3b_template);
