@@ -8,10 +8,17 @@
 #include <TLegend.h>
 #include <TPad.h>
 #include <TMath.h>
+#include <TLorentzVector.h>
 
 #include <iostream>
 #include <sstream>
 #include <vector>
+
+#include "KLFitter/DetectorAtlas_8TeV.h"
+#include "KLFitter/Fitter.h"
+#include "KLFitter/LikelihoodTopDilepton.h"
+#include "KLFitter/Permutations.h"
+
 using namespace std;
 
 
@@ -181,6 +188,19 @@ void prepare_histograms()
   TH1 *mc16_njets_from_top = new TH1f("m16_njets_from_top", "m16_njets_from_top", 4, 0, 4);
   
 
+  // Initialize KLFitter
+  KLFitter::Fitter fitter{};
+  
+  KLFitter::DetectorAtlas_8TeV detector{"/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/AnalysisTop/KLFitterTFs/mc15c/akt4_EMtopo_PP6"};
+  fitter.SetDetector(detector);
+
+  KLFitter::LikelihoodTopDilepton likelihood{};
+  likelihood.PhysicsConstants()->SetMassTop(172.5);
+  likelihood.SetBTagging(KLFitter::LikelihoodBase::BtaggingMethod::kNotag);
+  likelihood.SetFlagTopMassFixed(true);
+  fitter.SetLikelihood(&likelihood);
+  
+
   // Loop over directories with ntuples collections
   for (int dir_counter=0; dir_counter<dir_paths.size(); dir_counter++)
     {
@@ -263,16 +283,17 @@ void prepare_histograms()
 
 
 	      // Set all the needed branches
-	      vector<Float_t> *jet_pt, *jet_DL1r, *jet_eta, *jet_phi, *mu_pt, *mu_eta, *mu_phi, *mu_charge, *el_pt, *el_eta, *el_phi, *el_charge;
+	      vector<Float_t> *jet_pt, *jet_DL1r, *jet_eta, *jet_phi, *jet_e, *mu_pt, *mu_eta, *mu_phi, *mu_charge, *mu_e, *el_pt, *el_eta, *el_phi, *el_charge, *el_e;
 	      vector<int> *topHadronOriginFlag, *jet_truthflav;
 	      vector<char> *jet_DL1r_77;
-	      jet_pt = jet_DL1r = jet_eta = jet_phi = mu_pt = mu_eta = mu_phi = mu_charge = el_pt = el_eta = el_phi = el_charge = 0;
+	      jet_pt = jet_DL1r = jet_eta = jet_phi = mu_pt = mu_eta = mu_phi = mu_charge = mu_e = el_pt = el_eta = el_phi = el_charge = el_e = 0;
 	      topHadronOriginFlag = jet_truthflav = 0;
 	      jet_DL1r_77 = 0;
 	      Float_t met, met_phi;
 	      tree_nominal->SetBranchAddress("jet_pt", &jet_pt);
               tree_nominal->SetBranchAddress("jet_eta", &jet_eta);
               tree_nominal->SetBranchAddress("jet_phi", &jet_phi);
+	      tree_nominal->SetBranchAddress("jet_e", &jet_e);
               tree_nominal->SetBranchAddress("jet_DL1r", &jet_DL1r);
 	      tree_nominal->SetBranchAddress("jet_isbtagged_DL1r_77", &jet_DL1r_77);
               tree_nominal->SetBranchAddress("jet_truthflav", &jet_truthflav);
@@ -280,10 +301,12 @@ void prepare_histograms()
               tree_nominal->SetBranchAddress("el_eta", &el_eta);
               tree_nominal->SetBranchAddress("el_phi", &el_phi);
               tree_nominal->SetBranchAddress("el_charge", &el_charge);
+	      tree_nominal->SetBranchAddress("el_e", &el_e);
               tree_nominal->SetBranchAddress("mu_pt", &mu_pt);
               tree_nominal->SetBranchAddress("mu_eta", &mu_eta);
               tree_nominal->SetBranchAddress("mu_phi", &mu_phi);
               tree_nominal->SetBranchAddress("mu_charge", &mu_charge);
+	      tree_nominal->SetBranchAddress("mu_e", &mu_e);
               tree_nominal->SetBranchAddress("jet_GBHInit_topHadronOriginFlag", &topHadronOriginFlag); // https://gitlab.cern.ch/TTJ/Ntuple/-/blob/master/TTJNtuple/TTJNtuple/EventSaver.h#L55 
 	      tree_nominal->SetBranchAddress("met_met", &met);
 	      tree_nominal->SetBranchAddress("met_phi", &met_phi);
@@ -646,6 +669,33 @@ void prepare_histograms()
 		      mc16_minDeltaR_b_from_top_to_lep->Fill(min_dR_b_from_top_to_lep, weights);
 		      mc16_minDeltaR_b_not_from_top_to_lep->Fill(min_dR_b_not_from_top_to_lep, weights);
 		      mc16_minDeltaR_not_b_to_lep->Fill(min_dR_not_b_to_lep, weights);
+	
+
+		      // KLFitter invariant mass calculations:
+		      KLFitter::Particles particles{};
+                      likelihood.SetLeptonType(KLFitter::LikelohoodTopDilepton::kElectron, KLFitter::LikelihoodTopDilepton::kMuon);
+		      // Add leptons
+                      TLorenzVector el_lvec;
+                      TLorenzVector mu_vlec;
+                      el_lvec.SetPtEtaPhiE((*el_pt)[0]*0.001, (*el_eta)[0], (*el_phi)[0], (*el_e)[0]*0.001);
+                      mu_lvec.SetPtEtaPhiE((*mu_pt)[0]*0.001, (*mu_eta)[0], (*mu_phi)[0], (*mu_e)[0]*0.001);
+                      particles.AddParticle(el_lvec, el_lvec.Eta(), (*el_charge)[0], KLFitter::Particles::kElectron);
+		      particles.AddParticle(mu_lvec, mu_lvec.Eta(), (*mu_charge)[0], KLFitter::Particles::kMuon);
+                      // Add two leading pT jets
+		      for (int jet_i; jet_i<3; jet_i++) {
+			TLorenzVector jet_lvec;
+			jet_lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
+			particles.AddParticle(jet_lvec, jet_lvec.Eta(), KLFitter::Particles::kParton, "", j); }
+		      fitter.SetParticles(&particles);
+		      // Add MET
+		      fitter.SetET_miss_XY_SumET(met*0.001*cos(met_phi), met*0.001*sin(met_phi), met*0.001);
+		      // Loop over permutations
+		      int n_perm = fitter.Permutations()->NPermutations();
+		      for (int perm_i=0; perm_i < n_perm; perm_i++) {
+			fitter.Fit(perm_i);
+			auto permutedParticles = fitter.Likelihood()->PParticlesPermuted();
+			double llh = fitter.Likelihood()->LogLikelihood(fitter.Likelihood()->GetBestParameters()); }
+		      
 		      
 		      
 		      // Sort jets wrt DL1r tag weights
@@ -730,7 +780,8 @@ void prepare_histograms()
 		      // Assuming the 3rd btag is additional:
 		      if ((*topHadronOriginFlag)[2]==4) { mc16_minDeltaR_b01_b2_from_top->Fill(min(dR_b0_b2, dR_b1_b2)); }
 		      else if ((*topHadronOriginFlag)[2]!=-99) { mc16_minDeltaR_b01_b2_not_from_top->Fill(min(dR_b0_b2, dR_b1_b2)); }
-			
+
+
 		    } // 2+b, emu, OS cuts 
 
 		} // [entry] - loop over entries
