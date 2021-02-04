@@ -185,14 +185,14 @@ void prepare_histograms()
   TH1 *mc16_dR_lep0_lep1 = new TH1F("mc16_dR_lep0_lep1", "mc16_dR_lep0_lep1", 20, 0, 5);
 
   // number of jets from top
-  TH1 *mc16_njets_from_top = new TH1f("m16_njets_from_top", "m16_njets_from_top", 4, 0, 4);
+  TH1 *mc16_njets_from_top = new TH1F("m16_njets_from_top", "m16_njets_from_top", 4, 0, 4);
   
 
   // Initialize KLFitter
   KLFitter::Fitter fitter{};
   
   KLFitter::DetectorAtlas_8TeV detector{"/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/AnalysisTop/KLFitterTFs/mc15c/akt4_EMtopo_PP6"};
-  fitter.SetDetector(detector);
+  fitter.SetDetector(&detector);
 
   KLFitter::LikelihoodTopDilepton likelihood{};
   likelihood.PhysicsConstants()->SetMassTop(172.5);
@@ -338,8 +338,9 @@ void prepare_histograms()
 		{
 		  // Show events counter
 		  if (entry%1000==0) { cout << "\t" << entry << "\r"; cout.flush(); }
-                  tree_nominal->GetEntry(entry);
-
+                  cout << "debug" << endl;
+		  tree_nominal->GetEntry(entry);
+		  
 
 		  // Compute weights
 		  double weight_lumi = 1;
@@ -635,19 +636,19 @@ void prepare_histograms()
 			    if (dR_not_b_to_jet < min_dR_not_b_to_jet) min_dR_not_b_to_jet = dR_not_b_to_jet; }
 			} // loop over jet[j]
 			
-			if ((*jet_truthFlav)[i]==1 && (*topHadronOriginFlag)[i]==4) {
+			if ((*jet_truthflav)[i]==1 && (*topHadronOriginFlag)[i]==4) {
 			  double dR_b_from_top_to_el = dR((*jet_phi)[i], (*jet_eta)[i], (*el_phi)[0], (*el_eta)[0]);
 			  double dR_b_from_top_to_mu = dR((*jet_phi)[i], (*jet_eta)[i], (*mu_phi)[0], (*mu_eta)[0]);
 			  double dR_b_from_top_to_lep = min(dR_b_from_top_to_el, dR_b_from_top_to_mu);
 			  if (dR_b_from_top_to_lep < min_dR_b_from_top_to_lep) min_dR_b_from_top_to_lep = dR_b_from_top_to_lep; }
 			
-			if ((*jet_truthFlav)[i]==1 && (*topHadronOriginFlag)[i]!=4) {
+			if ((*jet_truthflav)[i]==1 && (*topHadronOriginFlag)[i]!=4) {
 			  double dR_b_not_from_top_to_el = dR((*jet_phi)[i], (*jet_eta)[i], (*el_phi)[0], (*el_eta)[0]);
 			  double dR_b_not_from_top_to_mu = dR((*jet_phi)[i], (*jet_eta)[i], (*mu_phi)[0], (*mu_eta)[0]);
 			  double dR_b_not_from_top_to_lep = min(dR_b_not_from_top_to_el, dR_b_not_from_top_to_mu);
 			  if (dR_b_not_from_top_to_lep < min_dR_b_not_from_top_to_lep) min_dR_b_not_from_top_to_lep = dR_b_not_from_top_to_lep; }
 			
-			if ((*jet_truthFlav)[i]!=1 && (*topHadronOriginFlag)[i]!=4) {
+			if ((*jet_truthflav)[i]!=1 && (*topHadronOriginFlag)[i]!=4) {
 			  double dR_not_b_to_el = dR((*jet_phi)[i], (*jet_eta)[i], (*el_phi)[0], (*el_eta)[0]);
 			  double dR_not_b_to_mu = dR((*jet_phi)[i], (*jet_eta)[i], (*mu_phi)[0], (*mu_eta)[0]);
 			  double dR_not_b_to_lep = min(dR_not_b_to_el, dR_not_b_to_mu);
@@ -673,19 +674,19 @@ void prepare_histograms()
 
 		      // KLFitter invariant mass calculations:
 		      KLFitter::Particles particles{};
-                      likelihood.SetLeptonType(KLFitter::LikelohoodTopDilepton::kElectron, KLFitter::LikelihoodTopDilepton::kMuon);
+                      likelihood.SetLeptonType(KLFitter::LikelihoodTopDilepton::kElectron, KLFitter::LikelihoodTopDilepton::kMuon);
 		      // Add leptons
-                      TLorenzVector el_lvec;
-                      TLorenzVector mu_vlec;
+                      TLorentzVector el_lvec;
+                      TLorentzVector mu_lvec;
                       el_lvec.SetPtEtaPhiE((*el_pt)[0]*0.001, (*el_eta)[0], (*el_phi)[0], (*el_e)[0]*0.001);
                       mu_lvec.SetPtEtaPhiE((*mu_pt)[0]*0.001, (*mu_eta)[0], (*mu_phi)[0], (*mu_e)[0]*0.001);
                       particles.AddParticle(el_lvec, el_lvec.Eta(), (*el_charge)[0], KLFitter::Particles::kElectron);
 		      particles.AddParticle(mu_lvec, mu_lvec.Eta(), (*mu_charge)[0], KLFitter::Particles::kMuon);
                       // Add two leading pT jets
 		      for (int jet_i; jet_i<3; jet_i++) {
-			TLorenzVector jet_lvec;
+			TLorentzVector jet_lvec;
 			jet_lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
-			particles.AddParticle(jet_lvec, jet_lvec.Eta(), KLFitter::Particles::kParton, "", j); }
+			particles.AddParticle(jet_lvec, jet_lvec.Eta(), KLFitter::Particles::kParton, "", jet_i); }
 		      fitter.SetParticles(&particles);
 		      // Add MET
 		      fitter.SetET_miss_XY_SumET(met*0.001*cos(met_phi), met*0.001*sin(met_phi), met*0.001);
@@ -694,7 +695,7 @@ void prepare_histograms()
 		      for (int perm_i=0; perm_i < n_perm; perm_i++) {
 			fitter.Fit(perm_i);
 			auto permutedParticles = fitter.Likelihood()->PParticlesPermuted();
-			double llh = fitter.Likelihood()->LogLikelihood(fitter.Likelihood()->GetBestParameters()); }
+			double llh = fitter.Likelihood()->LogLikelihood(fitter.Likelihood()->GetBestFitParameters()); }
 		      
 		      
 		      
