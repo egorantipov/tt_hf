@@ -187,6 +187,14 @@ void prepare_histograms()
   // number of jets from top
   TH1 *mc16_njets_from_top = new TH1F("m16_njets_from_top", "m16_njets_from_top", 4, 0, 4);
   
+  // Invariant mass
+  TH1 *mc16_bjet_inv_mass_from_top = new TH1F("mc16_bjet0_inv_mass_from_top", "mc16_bjet0_inv_mass_from_top", 100, 0, 20);
+  TH1 *mc16_bjet_inv_mass_not_from_top = new TH1F("mc16_bjet_inv_mass_not_from_top", "mc16_bjet_inv_mass_not_from_top", 100, 0, 20);
+  TH1 *mc16_btag_inv_mass_from_top = new TH1F("mc16_btag_inv_mass_from_top", "mc16_btag_inv_mass_from_top", 100, 0, 20);
+  TH1 *mc16_btag_inv_mass_not_from_top = new TH1F("mc16_btag_inv_mass_not_from_top", "mc16_btag_inv_mass_not_from_top", 100, 0, 20);
+  TH1 *mc16_el_inv_mass = new TH1F("mc16_el_inv_mass", "mc16_el_inv_mass", 2000, 0, 2000);
+  TH1 *mc16_mu_inv_mass = new TH1F("mc16_mu_inv_mass", "mc16_mu_inv_mass", 1000, 0, 1000);
+
 
   // Initialize KLFitter
   KLFitter::Fitter fitter{};
@@ -286,7 +294,7 @@ void prepare_histograms()
 	      vector<Float_t> *jet_pt, *jet_DL1r, *jet_eta, *jet_phi, *jet_e, *mu_pt, *mu_eta, *mu_phi, *mu_charge, *mu_e, *el_pt, *el_eta, *el_phi, *el_charge, *el_e;
 	      vector<int> *topHadronOriginFlag, *jet_truthflav;
 	      vector<char> *jet_DL1r_77;
-	      jet_pt = jet_DL1r = jet_eta = jet_phi = mu_pt = mu_eta = mu_phi = mu_charge = mu_e = el_pt = el_eta = el_phi = el_charge = el_e = 0;
+	      jet_pt = jet_DL1r = jet_eta = jet_phi = jet_e = mu_pt = mu_eta = mu_phi = mu_charge = mu_e = el_pt = el_eta = el_phi = el_charge = el_e = 0;
 	      topHadronOriginFlag = jet_truthflav = 0;
 	      jet_DL1r_77 = 0;
 	      Float_t met, met_phi;
@@ -338,7 +346,6 @@ void prepare_histograms()
 		{
 		  // Show events counter
 		  if (entry%1000==0) { cout << "\t" << entry << "\r"; cout.flush(); }
-                  cout << "debug" << endl;
 		  tree_nominal->GetEntry(entry);
 		  
 
@@ -673,32 +680,79 @@ void prepare_histograms()
 	
 
 		      // KLFitter invariant mass calculations:
-		      KLFitter::Particles particles{};
-                      likelihood.SetLeptonType(KLFitter::LikelihoodTopDilepton::kElectron, KLFitter::LikelihoodTopDilepton::kMuon);
+		      //KLFitter::Particles particles{};
+                      //likelihood.SetLeptonType(KLFitter::LikelihoodTopDilepton::kElectron, KLFitter::LikelihoodTopDilepton::kMuon);
 		      // Add leptons
                       TLorentzVector el_lvec;
                       TLorentzVector mu_lvec;
                       el_lvec.SetPtEtaPhiE((*el_pt)[0]*0.001, (*el_eta)[0], (*el_phi)[0], (*el_e)[0]*0.001);
                       mu_lvec.SetPtEtaPhiE((*mu_pt)[0]*0.001, (*mu_eta)[0], (*mu_phi)[0], (*mu_e)[0]*0.001);
-                      particles.AddParticle(el_lvec, el_lvec.Eta(), (*el_charge)[0], KLFitter::Particles::kElectron);
-		      particles.AddParticle(mu_lvec, mu_lvec.Eta(), (*mu_charge)[0], KLFitter::Particles::kMuon);
-                      // Add two leading pT jets
-		      for (int jet_i; jet_i<3; jet_i++) {
+                      //particles.AddParticle(el_lvec, el_lvec.Eta(), (*el_charge)[0], KLFitter::Particles::kElectron);
+		      //particles.AddParticle(mu_lvec, mu_lvec.Eta(), (*mu_charge)[0], KLFitter::Particles::kMuon);
+                      // Add three leading pT jets
+		      for (int jet_i=0; jet_i<3; jet_i++) {
 			TLorentzVector jet_lvec;
-			jet_lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
-			particles.AddParticle(jet_lvec, jet_lvec.Eta(), KLFitter::Particles::kParton, "", jet_i); }
-		      fitter.SetParticles(&particles);
+			jet_lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001); 
+			//particles.AddParticle(jet_lvec, jet_lvec.Eta(), KLFitter::Particles::kParton, "", jet_i); 
+		      }
+		      //fitter.SetParticles(&particles);
 		      // Add MET
-		      fitter.SetET_miss_XY_SumET(met*0.001*cos(met_phi), met*0.001*sin(met_phi), met*0.001);
+		      //fitter.SetET_miss_XY_SumET(met*0.001*cos(met_phi), met*0.001*sin(met_phi), met*0.001);
+
+
+		      //TEST
+		      //cout << "\n" << entry << endl;
+                      //cout << el_lvec.Pt() << " , " << el_lvec.Eta() << " , " << el_lvec.Phi() << " , " << el_lvec.E() << endl;
+                      //cout << mu_lvec.Pt() << " , " << mu_lvec.Eta() << " , " << mu_lvec.Phi() << " , " << mu_lvec.E() << endl;
+		      
 		      // Loop over permutations
-		      int n_perm = fitter.Permutations()->NPermutations();
-		      for (int perm_i=0; perm_i < n_perm; perm_i++) {
-			fitter.Fit(perm_i);
-			auto permutedParticles = fitter.Likelihood()->PParticlesPermuted();
-			double llh = fitter.Likelihood()->LogLikelihood(fitter.Likelihood()->GetBestFitParameters()); }
+		      //int n_perm = fitter.Permutations()->NPermutations();
+		      //for (int perm_i=0; perm_i < n_perm; perm_i++) {
+			//fitter.Fit(perm_i);
+			//auto permutedParticles = fitter.Likelihood()->PParticlesPermuted();
+			//double llh = fitter.Likelihood()->LogLikelihood(fitter.Likelihood()->GetBestFitParameters()); }
 		      
 		      
+
+		      // Invariant mass of bjets/btags and leptons
+		      vector<TLorentzVector> bjet_from_top_lvec;
+		      vector<TLorentzVector> bjet_not_from_top_lvec;
+		      vector<TLorentzVector> btag_from_top_lvec;
+		      vector<TLorentzVector> btag_not_from_top_lvec;
+		      for (int jet_i=0; jet_i<jet_pt->size(); jet_i++) {
+			// bjets
+			if ((*jet_truthflav)[jet_i]==5) {
+			  TLorentzVector lvec;
+			  lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
+			  if ((*topHadronOriginFlag)[jet_i]==4) {
+			    bjet_from_top_lvec.push_back(lvec);
+			    float inv_mass = bjet_from_top_lvec[jet_i].M();
+			    mc16_bjet_inv_mass_from_top->Fill(inv_mass, weights); }
+			  else { 
+			    bjet_not_from_top_lvec.push_back(lvec);
+			    float inv_mass = bjet_not_from_top_lvec[jet_i].M();
+			    mc16_bjet_inv_mass_not_from_top->Fill(inv_mass, weights); } }
+			// btags
+			if ((*jet_DL1r_77)[jet_i]==1) {
+			  TLorentzVector lvec;
+			  lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
+			  if ((*topHadronOriginFlag)[jet_i]==4) { 
+			    btag_from_top_lvec.push_back(lvec);
+			    float inv_mass = btag_from_top_lvec[jet_i].M();
+			    mc16_btag_inv_mass_from_top->Fill(inv_mass, weights); }
+			  else { 
+			    btag_not_from_top_lvec.push_back(lvec);
+			    float inv_mass = btag_not_from_top_lvec[jet_i].M();
+			    mc16_btag_inv_mass_not_from_top->Fill(inv_mass, weights); } }
+		      }
+		      // electrons
+		      float el_inv_mass = el_lvec.M();
+		      mc16_el_inv_mass->Fill(el_inv_mass*pow(10,6), weights);
+		      float mu_inv_mass = mu_lvec.M();
+		      mc16_mu_inv_mass->Fill(mu_inv_mass*pow(10,3), weights);
 		      
+
+
 		      // Sort jets wrt DL1r tag weights
 		      sort (jet_DL1r->begin(), jet_DL1r->end(), greater<int>());
 
@@ -872,6 +926,16 @@ void prepare_histograms()
   
   mc16_njets_from_top->Write("2b_emu_OS_njets_from_top");
   
+  // Invariant mass
+  mc16_bjet_inv_mass_from_top->Write("2b_emu_OS_mc16_bjet_inv_mass_from_top");
+  mc16_bjet_inv_mass_not_from_top->Write("2b_emu_OS_mc16_bjet_inv_mass_not_from_top");
+  mc16_btag_inv_mass_from_top->Write("2b_emu_OS_mc16_btag_inv_mass_from_top");
+  mc16_btag_inv_mass_not_from_top->Write("2b_emu_OS_mc16_btag_inv_mass_not_from_top");
+  mc16_el_inv_mass->Write("2b_emu_OS_mc16_el_inv_mass");
+  mc16_mu_inv_mass->Write("2b_emu_OS_mc16_mu_inv_mass");
+  
+
+
   // Close the gists file
   hists_file->Close();
 }
