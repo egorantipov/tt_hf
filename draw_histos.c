@@ -38,7 +38,7 @@ int draw_n_histos(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_ti
     // TEST 
     if (!h_vec[i]) cout << "Requested object TH_[" << i << "] wasn't found!" << endl;
     
-    double h_int = h_vec[i]->Integral(0, h_vec[i]->GetNbinsX());
+    double h_int = h_vec[i]->Integral(1, h_vec[i]->GetNbinsX());
     double sf = 1/h_int;
     cout << "Hist: " << h_title[i] << " , Integral: " << h_int << endl;
     
@@ -167,7 +167,18 @@ void draw_histos()
   TH1 *mc16_minDeltaR_b_from_top_to_lep = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_minDeltaR_b_from_top_to_lep");
   TH1 *mc16_minDeltaR_b_not_from_top_to_lep = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_minDeltaR_b_not_from_top_to_lep");
   TH1 *mc16_minDeltaR_not_b_to_lep = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_minDeltaR_not_b_to_lep");
-  
+
+  // Invariant mass
+  TH1 *mc16_inv_mass_lep_bjet_from_top_min_dR = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_inv_mass_lep_bjet_from_top_min_dR");
+  TH1 *mc16_inv_mass_lep_bjet_not_from_top_min_dR = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_inv_mass_lep_bjet_not_from_top_min_dR");
+  TH1 *mc16_inv_mass_lep_btag_from_top_min_dR = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_inv_mass_lep_btag_from_top_min_dR");
+  TH1 *mc16_inv_mass_lep_btag_not_from_top_min_dR = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_inv_mass_lep_btag_not_from_top_min_dR");
+  TH1 *mc16_min_inv_mass_lep_bjet_from_top = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_min_inv_mass_lep_bjet_from_top");
+  TH1 *mc16_max_inv_mass_lep_bjet_from_top = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_max_inv_mass_lep_bjet_from_top");
+  TH1 *mc16_min_inv_mass_lep_bjet_not_from_top = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_min_inv_mass_lep_bjet_not_from_top");
+  TH1 *mc16_max_inv_mass_lep_bjet_not_from_top = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_max_inv_mass_lep_bjet_not_from_top");
+  TH1 *mc16_min_inv_mass_lep_other_jet = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_min_inv_mass_lep_other_jet");
+  TH1 *mc16_max_inv_mass_lep_other_jet = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_max_inv_mass_lep_other_jet");
 
   
   // Draw the plots in two steps:
@@ -287,6 +298,22 @@ void draw_histos()
 
   vector<TH1*> mc16_min_dR_je_lep_collection = {mc16_minDeltaR_not_b_to_lep, mc16_minDeltaR_b_not_from_top_to_lep, mc16_minDeltaR_b_from_top_to_lep};
   int mc16_min_dR_jet_lep_draw = draw_n_histos(mc16_min_dR_je_lep_collection, dR_jet_obj_title, "#bf{#DeltaR_{min}(jet, lepton)}", "min_dR_jet_lep", true, 0, 0.2);
+
+
+  // Invariant mass
+  vector<TString> mc16_inv_mass_lep_bjet_min_dR_title = {"from top", "not from top"};
+  vector<TH1*> mc16_inv_mass_lep_bjet_min_dR_collection = {mc16_inv_mass_lep_bjet_from_top_min_dR, mc16_inv_mass_lep_bjet_not_from_top_min_dR};
+  int mc16_inv_mass_lep_bjet_min_dR_draw = draw_n_histos(mc16_inv_mass_lep_bjet_min_dR_collection, mc16_inv_mass_lep_bjet_min_dR_title, "#bf{M(bjet - closest lep.)^{inv}}", "inv_mass_lep_bjet_min_dR", true, 0, 0.02);
+
+  vector<TH1*> mc16_inv_mass_lep_btag_min_dR_collection = {mc16_inv_mass_lep_btag_from_top_min_dR, mc16_inv_mass_lep_btag_not_from_top_min_dR};
+  int mc16_inv_mass_lep_btag_min_dR_draw = draw_n_histos(mc16_inv_mass_lep_btag_min_dR_collection, mc16_inv_mass_lep_bjet_min_dR_title, "#bf{M(btag - closest lep.)^{inv}}", "inv_mass_lep_btag_min_dR", true, 0, 0.02);
+
+  vector<TString> mc16_inv_mass_lep_obj_title = {"other non-b-jet", "other b-jet", "b-jet from top"};
+  vector<TH1*> mc16_min_inv_mass_lep_obj_collection = {mc16_min_inv_mass_lep_other_jet, mc16_min_inv_mass_lep_bjet_not_from_top, mc16_min_inv_mass_lep_bjet_from_top};
+  int mc16_min_inv_mass_lep_obj_draw = draw_n_histos(mc16_min_inv_mass_lep_obj_collection, mc16_inv_mass_lep_obj_title, "#bf{M(jet - lep.)^{inv}_{min}}", "inv_mass_min_lep_obj", true, 0, 0.02);
+
+  vector<TH1*> mc16_max_inv_mass_lep_obj_collection = {mc16_max_inv_mass_lep_other_jet, mc16_max_inv_mass_lep_bjet_not_from_top, mc16_max_inv_mass_lep_bjet_from_top};
+  int mc16_max_inv_mass_lep_obj_draw = draw_n_histos(mc16_max_inv_mass_lep_obj_collection, mc16_inv_mass_lep_obj_title, "#bf{M(jet - lep.)^{inv}_{max}}", "inv_mass_max_lep_obj", true, 0, 0.02);
 
 
   // Close the hists file

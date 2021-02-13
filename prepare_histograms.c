@@ -184,17 +184,21 @@ void prepare_histograms()
   TH1 *mc16_lep_phi = new TH1F("mc16_lep_phi", "mc16_lep_phi", 40, -4, 4);
   TH1 *mc16_dR_lep0_lep1 = new TH1F("mc16_dR_lep0_lep1", "mc16_dR_lep0_lep1", 20, 0, 5);
 
-  // number of jets from top
+  // Different jets multiplicity 
   TH1 *mc16_njets_from_top = new TH1F("m16_njets_from_top", "m16_njets_from_top", 4, 0, 4);
+  TH1 *mc16_nbjets_from_top = new TH1F("mc16_nbjets_from_top", "mc16_nbjets_from_top", 4, 0, 4);
   
   // Invariant mass
-  TH1 *mc16_bjet_inv_mass_from_top = new TH1F("mc16_bjet0_inv_mass_from_top", "mc16_bjet0_inv_mass_from_top", 100, 0, 20);
-  TH1 *mc16_bjet_inv_mass_not_from_top = new TH1F("mc16_bjet_inv_mass_not_from_top", "mc16_bjet_inv_mass_not_from_top", 100, 0, 20);
-  TH1 *mc16_btag_inv_mass_from_top = new TH1F("mc16_btag_inv_mass_from_top", "mc16_btag_inv_mass_from_top", 100, 0, 20);
-  TH1 *mc16_btag_inv_mass_not_from_top = new TH1F("mc16_btag_inv_mass_not_from_top", "mc16_btag_inv_mass_not_from_top", 100, 0, 20);
-  TH1 *mc16_el_inv_mass = new TH1F("mc16_el_inv_mass", "mc16_el_inv_mass", 2000, 0, 2000);
-  TH1 *mc16_mu_inv_mass = new TH1F("mc16_mu_inv_mass", "mc16_mu_inv_mass", 1000, 0, 1000);
-
+  TH1 *mc16_inv_mass_lep_bjet_from_top_min_dR = new TH1F("mc16_inv_mass_lep_bjet_from_top_min_dR", "mc16_inv_mass_lep_bjet_from_top_min_dR", 1000, 0, 1000);
+  TH1 *mc16_inv_mass_lep_bjet_not_from_top_min_dR = new TH1F("mc16_inv_mass_lep_bjet_not_from_top_min_dR", "mc16_inv_mass_lep_bjet_not_from_top_min_dR", 1000, 0, 1000);
+  TH1 *mc16_inv_mass_lep_btag_from_top_min_dR = new TH1F("mc16_inv_mass_lep_btag_from_top_min_dR", "mc16_inv_mass_lep_btag_from_top_min_dR", 1000, 0, 1000);
+  TH1 *mc16_inv_mass_lep_btag_not_from_top_min_dR = new TH1F("mc16_inv_mass_lep_btag_not_from_top_min_dR", "mc16_inv_mass_lep_btag_not_from_top_min_dR", 1000, 0, 1000);
+  TH1 *mc16_min_inv_mass_lep_bjet_from_top = new TH1F("mc16_min_inv_mass_lep_bjet_from_top", "mc16_min_inv_mass_lep_bjet_from_top", 1000, 0, 1000);
+  TH1 *mc16_max_inv_mass_lep_bjet_from_top = new TH1F("mc16_max_inv_mass_lep_bjet_from_top", "mc16_max_inv_mass_lep_bjet_from_top", 1000, 0, 1000);
+  TH1 *mc16_min_inv_mass_lep_bjet_not_from_top = new TH1F("mc16_min_inv_mass_lep_bjet_not_from_top", "mc16_min_inv_mass_lep_bjet_not_from_top", 1000, 0, 1000);
+  TH1 *mc16_max_inv_mass_lep_bjet_not_from_top = new TH1F("mc16_max_inv_mass_lep_bjet_not_from_top", "mc16_max_inv_mass_lep_bjet_not_from_top", 1000, 0, 1000);
+  TH1 *mc16_min_inv_mass_lep_other_jet = new TH1F("mc16_min_inv_mass_lep_other_jet", "mc16_min_inv_mass_lep_other_jet", 1000, 0, 1000);
+  TH1 *mc16_max_inv_mass_lep_other_jet = new TH1F("mc16_max_inv_mass_lep_other_jet", "mc16_max_inv_mass_lep_other_jet", 1000, 0, 1000);
 
   // Initialize KLFitter
   KLFitter::Fitter fitter{};
@@ -291,10 +295,14 @@ void prepare_histograms()
 
 
 	      // Set all the needed branches
-	      vector<Float_t> *jet_pt, *jet_DL1r, *jet_eta, *jet_phi, *jet_e, *mu_pt, *mu_eta, *mu_phi, *mu_charge, *mu_e, *el_pt, *el_eta, *el_phi, *el_charge, *el_e;
+	      vector<Float_t> *jet_pt, *jet_DL1r, *jet_eta, *jet_phi, *jet_e;
+	      vector<Float_t> *el_pt, *el_eta, *el_cl_eta, *el_phi, *el_charge, *el_e;
+	      vector<Float_t> *mu_pt, *mu_eta, *mu_phi, *mu_charge, *mu_e;
 	      vector<int> *topHadronOriginFlag, *jet_truthflav;
 	      vector<char> *jet_DL1r_77;
-	      jet_pt = jet_DL1r = jet_eta = jet_phi = jet_e = mu_pt = mu_eta = mu_phi = mu_charge = mu_e = el_pt = el_eta = el_phi = el_charge = el_e = 0;
+	      jet_pt = jet_DL1r = jet_eta = jet_phi = jet_e = 0;
+	      el_pt = el_eta = el_cl_eta = el_phi = el_charge = el_e = 0;
+	      mu_pt = mu_eta = mu_phi = mu_charge = mu_e = 0;
 	      topHadronOriginFlag = jet_truthflav = 0;
 	      jet_DL1r_77 = 0;
 	      Float_t met, met_phi;
@@ -307,6 +315,7 @@ void prepare_histograms()
               tree_nominal->SetBranchAddress("jet_truthflav", &jet_truthflav);
 	      tree_nominal->SetBranchAddress("el_pt", &el_pt);
               tree_nominal->SetBranchAddress("el_eta", &el_eta);
+	      tree_nominal->SetBranchAddress("el_cl_eta", &el_cl_eta);
               tree_nominal->SetBranchAddress("el_phi", &el_phi);
               tree_nominal->SetBranchAddress("el_charge", &el_charge);
 	      tree_nominal->SetBranchAddress("el_e", &el_e);
@@ -599,7 +608,8 @@ void prepare_histograms()
 
 		      // Declare a value for n jets from top
 		      int njets_from_top = 0;
-
+		      int nbjets_from_top = 0;
+		      
 
 		      // Compute min dR for different jet-obj combinations
 		      double min_dR_b_from_top_to_b = 999999.;
@@ -663,10 +673,12 @@ void prepare_histograms()
 
 			// Count number of jets from top
 			if ((*topHadronOriginFlag)[i]==4) njets_from_top++;
+			if ((*topHadronOriginFlag)[i]==4 && (*jet_truthflav)[i]==5) nbjets_from_top++;
 			
 		      } // loop over jet[i]
 
 		      mc16_njets_from_top->Fill(njets_from_top, weights);
+		      mc16_nbjets_from_top->Fill(nbjets_from_top, weights);
 		      
 		      mc16_minDeltaR_b_from_top_to_b->Fill(min_dR_b_from_top_to_b, weights);
 		      mc16_minDeltaR_b_not_from_top_to_b->Fill(min_dR_b_not_from_top_to_b, weights);
@@ -687,14 +699,14 @@ void prepare_histograms()
                       TLorentzVector mu_lvec;
                       el_lvec.SetPtEtaPhiE((*el_pt)[0]*0.001, (*el_eta)[0], (*el_phi)[0], (*el_e)[0]*0.001);
                       mu_lvec.SetPtEtaPhiE((*mu_pt)[0]*0.001, (*mu_eta)[0], (*mu_phi)[0], (*mu_e)[0]*0.001);
-                      //particles.AddParticle(el_lvec, el_lvec.Eta(), (*el_charge)[0], KLFitter::Particles::kElectron);
+                      //particles.AddParticle(el_lvec, (*el_cl_eta)[0], (*el_charge)[0], KLFitter::Particles::kElectron);
 		      //particles.AddParticle(mu_lvec, mu_lvec.Eta(), (*mu_charge)[0], KLFitter::Particles::kMuon);
-                      // Add three leading pT jets
-		      for (int jet_i=0; jet_i<3; jet_i++) {
-			TLorentzVector jet_lvec;
-			jet_lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001); 
-			//particles.AddParticle(jet_lvec, jet_lvec.Eta(), KLFitter::Particles::kParton, "", jet_i); 
-		      }
+                      // Add two leading pT jets
+		      //for (int jet_i=0; jet_i<3; jet_i++) {
+		      //TLorentzVector jet_lvec;
+		      //jet_lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001); 
+		      //particles.AddParticle(jet_lvec, jet_lvec.Eta(), KLFitter::Particles::kParton, "", jet_i); 
+		      //}
 		      //fitter.SetParticles(&particles);
 		      // Add MET
 		      //fitter.SetET_miss_XY_SumET(met*0.001*cos(met_phi), met*0.001*sin(met_phi), met*0.001);
@@ -708,9 +720,9 @@ void prepare_histograms()
 		      // Loop over permutations
 		      //int n_perm = fitter.Permutations()->NPermutations();
 		      //for (int perm_i=0; perm_i < n_perm; perm_i++) {
-			//fitter.Fit(perm_i);
-			//auto permutedParticles = fitter.Likelihood()->PParticlesPermuted();
-			//double llh = fitter.Likelihood()->LogLikelihood(fitter.Likelihood()->GetBestFitParameters()); }
+		      //fitter.Fit(perm_i);
+		      //auto permutedParticles = fitter.Likelihood()->PParticlesPermuted();
+		      //double llh = fitter.Likelihood()->LogLikelihood(fitter.Likelihood()->GetBestFitParameters()); }
 		      
 		      
 
@@ -719,37 +731,83 @@ void prepare_histograms()
 		      vector<TLorentzVector> bjet_not_from_top_lvec;
 		      vector<TLorentzVector> btag_from_top_lvec;
 		      vector<TLorentzVector> btag_not_from_top_lvec;
+		      
+		      double min_inv_mass_lep_bjet_from_top = 999999;
+		      double max_inv_mass_lep_bjet_from_top = 0;
+		      double min_inv_mass_lep_bjet_not_from_top = 999999;
+		      double max_inv_mass_lep_bjet_not_from_top = 0;
+		      double min_inv_mass_lep_other_jet = 999999;
+		      double max_inv_mass_lep_other_jet = 0;
+		      
 		      for (int jet_i=0; jet_i<jet_pt->size(); jet_i++) {
-			// bjets
+			TLorentzVector lvec;
+			lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
+			
+			// bjets and the clesest leptons
 			if ((*jet_truthflav)[jet_i]==5) {
-			  TLorentzVector lvec;
-			  lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
 			  if ((*topHadronOriginFlag)[jet_i]==4) {
 			    bjet_from_top_lvec.push_back(lvec);
-			    float inv_mass = bjet_from_top_lvec[jet_i].M();
-			    mc16_bjet_inv_mass_from_top->Fill(inv_mass, weights); }
+			    double dr_j_el = lvec.DeltaR(el_lvec);
+			    double dr_j_mu = lvec.DeltaR(mu_lvec);
+			    double inv_mass_j_lep = 0;
+			    if (dr_j_el<= dr_j_mu) { inv_mass_j_lep = (lvec + el_lvec).M(); }
+			    else { inv_mass_j_lep = (lvec + mu_lvec).M(); }
+			    mc16_inv_mass_lep_bjet_from_top_min_dR->Fill(inv_mass_j_lep, weights); }
 			  else { 
 			    bjet_not_from_top_lvec.push_back(lvec);
-			    float inv_mass = bjet_not_from_top_lvec[jet_i].M();
-			    mc16_bjet_inv_mass_not_from_top->Fill(inv_mass, weights); } }
-			// btags
+			    double dr_j_el = lvec.DeltaR(el_lvec);
+			    double dr_j_mu = lvec.DeltaR(mu_lvec);
+			    double inv_mass_j_lep = 0;
+			    if (dr_j_el<= dr_j_mu) { inv_mass_j_lep = (lvec + el_lvec).M(); }
+			    else { inv_mass_j_lep = (lvec + mu_lvec).M(); }
+			    mc16_inv_mass_lep_bjet_not_from_top_min_dR->Fill(inv_mass_j_lep, weights); } }
+			
+			// btags and the closest leptons
 			if ((*jet_DL1r_77)[jet_i]==1) {
-			  TLorentzVector lvec;
-			  lvec.SetPtEtaPhiE((*jet_pt)[jet_i]*0.001, (*jet_eta)[jet_i], (*jet_phi)[jet_i], (*jet_e)[jet_i]*0.001);
 			  if ((*topHadronOriginFlag)[jet_i]==4) { 
 			    btag_from_top_lvec.push_back(lvec);
-			    float inv_mass = btag_from_top_lvec[jet_i].M();
-			    mc16_btag_inv_mass_from_top->Fill(inv_mass, weights); }
+			    double dr_j_el = lvec.DeltaR(el_lvec);
+			    double dr_j_mu = lvec.DeltaR(mu_lvec);
+			    double inv_mass_j_lep = 0;
+			    if (dr_j_el<= dr_j_mu) { inv_mass_j_lep = (lvec + el_lvec).M(); }
+			    else { inv_mass_j_lep = (lvec + mu_lvec).M(); }
+			    mc16_inv_mass_lep_btag_from_top_min_dR->Fill(inv_mass_j_lep, weights); }
 			  else { 
 			    btag_not_from_top_lvec.push_back(lvec);
-			    float inv_mass = btag_not_from_top_lvec[jet_i].M();
-			    mc16_btag_inv_mass_not_from_top->Fill(inv_mass, weights); } }
+			    double dr_j_el = lvec.DeltaR(el_lvec);
+			    double dr_j_mu = lvec.DeltaR(mu_lvec);
+			    double inv_mass_j_lep = 0;
+			    if (dr_j_el<= dr_j_mu) { inv_mass_j_lep = (lvec + el_lvec).M(); }
+			    else { inv_mass_j_lep = (lvec + mu_lvec).M(); }
+			    mc16_inv_mass_lep_btag_not_from_top_min_dR->Fill(inv_mass_j_lep, weights); } }
+			
+			// bjets and leptons - min and max invarinat masses
+			if ((*jet_truthflav)[jet_i]==5) {
+			  if ((*topHadronOriginFlag)[jet_i]==4) {
+			    double min_inv_mass_lep_bjet_from_top_tmp = min( (lvec + el_lvec).M(), (lvec + mu_lvec).M() );
+			    double max_inv_mass_lep_bjet_from_top_tmp = max( (lvec + mu_lvec).M(), (lvec + mu_lvec).M() );
+			    min_inv_mass_lep_bjet_from_top = min(min_inv_mass_lep_bjet_from_top_tmp, min_inv_mass_lep_bjet_from_top);
+			    max_inv_mass_lep_bjet_from_top = max(max_inv_mass_lep_bjet_from_top_tmp, max_inv_mass_lep_bjet_from_top_tmp); }
+			  else {
+			    double min_inv_mass_lep_bjet_not_from_top_tmp = min( (lvec + el_lvec).M(), (lvec + mu_lvec).M() );
+			    double max_inv_mass_lep_bjet_not_from_top_tmp = max( (lvec + el_lvec).M(), (lvec + mu_lvec).M() );
+			    min_inv_mass_lep_bjet_not_from_top = min(min_inv_mass_lep_bjet_not_from_top_tmp, min_inv_mass_lep_bjet_not_from_top);
+			    max_inv_mass_lep_bjet_not_from_top = max(max_inv_mass_lep_bjet_not_from_top_tmp, max_inv_mass_lep_bjet_not_from_top); } }
+			// other than bjets and leptons - min and max invariant masses
+			else {
+			  double min_inv_mass_lep_other_jet_tmp = min( (lvec + el_lvec).M(), (lvec + mu_lvec).M() );
+			  double max_inv_mass_lep_other_jet_tmp = max( (lvec + el_lvec).M(), (lvec + mu_lvec).M() );
+			  min_inv_mass_lep_other_jet = min( (lvec + el_lvec).M(), (lvec + mu_lvec).M() );
+			  max_inv_mass_lep_other_jet = max( (lvec + el_lvec).M(), (lvec + mu_lvec).M() ); }
 		      }
-		      // electrons
-		      float el_inv_mass = el_lvec.M();
-		      mc16_el_inv_mass->Fill(el_inv_mass*pow(10,6), weights);
-		      float mu_inv_mass = mu_lvec.M();
-		      mc16_mu_inv_mass->Fill(mu_inv_mass*pow(10,3), weights);
+		      
+		      // Fill the min/max invariant mass hists
+		      if (min_inv_mass_lep_bjet_from_top!=0) mc16_min_inv_mass_lep_bjet_from_top->Fill(min_inv_mass_lep_bjet_from_top, weights);
+		      if (max_inv_mass_lep_bjet_from_top!=999999) mc16_max_inv_mass_lep_bjet_from_top->Fill(max_inv_mass_lep_bjet_from_top, weights);
+		      if (min_inv_mass_lep_bjet_not_from_top!=0) mc16_min_inv_mass_lep_bjet_not_from_top->Fill(min_inv_mass_lep_bjet_not_from_top, weights);
+		      if (max_inv_mass_lep_bjet_not_from_top!=999999) mc16_max_inv_mass_lep_bjet_not_from_top->Fill(max_inv_mass_lep_bjet_not_from_top, weights);
+		      if (min_inv_mass_lep_other_jet!=0) mc16_min_inv_mass_lep_other_jet->Fill(min_inv_mass_lep_other_jet, weights);
+		      if (max_inv_mass_lep_other_jet!=999999) mc16_max_inv_mass_lep_other_jet->Fill(max_inv_mass_lep_other_jet, weights);
 		      
 
 
@@ -925,14 +983,20 @@ void prepare_histograms()
   mc16_minDeltaR_not_b_to_lep->Write("2b_emu_OS_mc16_minDeltaR_not_b_to_lep");
   
   mc16_njets_from_top->Write("2b_emu_OS_njets_from_top");
+  mc16_njets_from_top->Write("2b_emu_OS_nbjets_from_top");
   
   // Invariant mass
-  mc16_bjet_inv_mass_from_top->Write("2b_emu_OS_mc16_bjet_inv_mass_from_top");
-  mc16_bjet_inv_mass_not_from_top->Write("2b_emu_OS_mc16_bjet_inv_mass_not_from_top");
-  mc16_btag_inv_mass_from_top->Write("2b_emu_OS_mc16_btag_inv_mass_from_top");
-  mc16_btag_inv_mass_not_from_top->Write("2b_emu_OS_mc16_btag_inv_mass_not_from_top");
-  mc16_el_inv_mass->Write("2b_emu_OS_mc16_el_inv_mass");
-  mc16_mu_inv_mass->Write("2b_emu_OS_mc16_mu_inv_mass");
+  mc16_inv_mass_lep_bjet_from_top_min_dR->Write("2b_emu_OS_mc16_inv_mass_lep_bjet_from_top_min_dR");
+  mc16_inv_mass_lep_bjet_not_from_top_min_dR->Write("2b_emu_OS_mc16_inv_mass_lep_bjet_not_from_top_min_dR");
+  mc16_inv_mass_lep_btag_from_top_min_dR->Write("2b_emu_OS_mc16_inv_mass_lep_btag_from_top_min_dR");
+  mc16_inv_mass_lep_btag_not_from_top_min_dR->Write("2b_emu_OS_mc16_inv_mass_lep_btag_not_from_top_min_dR");
+  mc16_min_inv_mass_lep_bjet_from_top->Write("2b_emu_OS_mc16_min_inv_mass_lep_bjet_from_top");
+  mc16_max_inv_mass_lep_bjet_from_top->Write("2b_emu_OS_mc16_max_inv_mass_lep_bjet_from_top");
+  mc16_min_inv_mass_lep_bjet_not_from_top->Write("2b_emu_OS_mc16_min_inv_mass_lep_bjet_not_from_top");
+  mc16_max_inv_mass_lep_bjet_not_from_top->Write("2b_emu_OS_mc16_max_inv_mass_lep_bjet_not_from_top");
+  mc16_min_inv_mass_lep_other_jet->Write("2b_emu_OS_mc16_min_inv_mass_lep_other_jet");
+  mc16_max_inv_mass_lep_other_jet->Write("2b_emu_OS_mc16_max_inv_mass_lep_other_jet");
+  
   
 
 
