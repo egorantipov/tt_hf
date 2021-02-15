@@ -211,7 +211,16 @@ void prepare_histograms()
   likelihood.SetBTagging(KLFitter::LikelihoodBase::BtaggingMethod::kNotag);
   likelihood.SetFlagTopMassFixed(true);
   fitter.SetLikelihood(&likelihood);
-  
+
+
+  // CReate a ROOT file for NN
+  vector<vector<int>> NN_tHOF_v, NN_jet_truthflav_v;
+  vector<float> NN_min_dR_b_from_top_to_lep_v, NN_min_dR_b_not_from_top_to_lep_v, NN_min_dR_not_b_to_lep_v;
+  vector<float> NN_M_lep_bjet_min_dR_from_top_v, NN_M_lep_bjet_min_dR_not_from_top_v;
+  vector<float> NN_min_M_lep_bjet_from_top_v, NN_max_M_lep_bjet_from_top_v;
+  vector<float> NN_min_M_lep_bjet_not_from_top_v, NN_max_M_lep_bjet_not_from_top_v;
+  vector<float> NN_min_M_lep_other_jet_v, NN_max_M_lep_other_jet_v;
+
 
   // Loop over directories with ntuples collections
   for (int dir_counter=0; dir_counter<dir_paths.size(); dir_counter++)
@@ -689,7 +698,7 @@ void prepare_histograms()
 		      mc16_minDeltaR_b_from_top_to_lep->Fill(min_dR_b_from_top_to_lep, weights);
 		      mc16_minDeltaR_b_not_from_top_to_lep->Fill(min_dR_b_not_from_top_to_lep, weights);
 		      mc16_minDeltaR_not_b_to_lep->Fill(min_dR_not_b_to_lep, weights);
-	
+
 
 		      // KLFitter invariant mass calculations:
 		      //KLFitter::Particles particles{};
@@ -732,6 +741,8 @@ void prepare_histograms()
 		      vector<TLorentzVector> btag_from_top_lvec;
 		      vector<TLorentzVector> btag_not_from_top_lvec;
 		      
+		      double inv_mass_lep_bjet_from_top_min_dR = 0;
+		      double inv_mass_lep_bjet_not_from_top_min_dR = 0;
 		      double min_inv_mass_lep_bjet_from_top = 999999;
 		      double max_inv_mass_lep_bjet_from_top = 0;
 		      double min_inv_mass_lep_bjet_not_from_top = 999999;
@@ -752,6 +763,7 @@ void prepare_histograms()
 			    double inv_mass_j_lep = 0;
 			    if (dr_j_el<= dr_j_mu) { inv_mass_j_lep = (lvec + el_lvec).M(); }
 			    else { inv_mass_j_lep = (lvec + mu_lvec).M(); }
+			    inv_mass_lep_bjet_from_top_min_dR = inv_mass_j_lep;
 			    mc16_inv_mass_lep_bjet_from_top_min_dR->Fill(inv_mass_j_lep, weights); }
 			  else { 
 			    bjet_not_from_top_lvec.push_back(lvec);
@@ -760,6 +772,7 @@ void prepare_histograms()
 			    double inv_mass_j_lep = 0;
 			    if (dr_j_el<= dr_j_mu) { inv_mass_j_lep = (lvec + el_lvec).M(); }
 			    else { inv_mass_j_lep = (lvec + mu_lvec).M(); }
+			    inv_mass_lep_bjet_not_from_top_min_dR = inv_mass_j_lep;
 			    mc16_inv_mass_lep_bjet_not_from_top_min_dR->Fill(inv_mass_j_lep, weights); } }
 			
 			// btags and the closest leptons
@@ -808,8 +821,24 @@ void prepare_histograms()
 		      if (max_inv_mass_lep_bjet_not_from_top!=999999) mc16_max_inv_mass_lep_bjet_not_from_top->Fill(max_inv_mass_lep_bjet_not_from_top, weights);
 		      if (min_inv_mass_lep_other_jet!=0) mc16_min_inv_mass_lep_other_jet->Fill(min_inv_mass_lep_other_jet, weights);
 		      if (max_inv_mass_lep_other_jet!=999999) mc16_max_inv_mass_lep_other_jet->Fill(max_inv_mass_lep_other_jet, weights);
-		      
 
+
+		      // Fill the NN vector variables
+		      NN_min_dR_b_from_top_to_lep_v.push_back(min_dR_b_from_top_to_lep);
+		      NN_min_dR_b_not_from_top_to_lep_v.push_back(min_dR_b_not_from_top_to_lep);
+		      NN_min_dR_not_b_to_lep_v.push_back(min_dR_not_b_to_lep);
+		      NN_M_lep_bjet_min_dR_from_top_v.push_back(inv_mass_lep_bjet_from_top_min_dR);
+		      NN_M_lep_bjet_min_dR_not_from_top_v.push_back(inv_mass_lep_bjet_not_from_top_min_dR);
+		      NN_min_M_lep_bjet_from_top_v.push_back(min_inv_mass_lep_bjet_from_top);
+		      NN_max_M_lep_bjet_from_top_v.push_back(max_inv_mass_lep_bjet_from_top);
+		      NN_min_M_lep_bjet_not_from_top_v.push_back(min_inv_mass_lep_bjet_not_from_top);
+		      NN_max_M_lep_bjet_not_from_top_v.push_back(max_inv_mass_lep_bjet_not_from_top);
+		      NN_min_M_lep_other_jet_v.push_back(min_inv_mass_lep_other_jet);
+		      NN_max_M_lep_other_jet_v.push_back(max_inv_mass_lep_other_jet);
+		      NN_tHOF_v.push_back((*topHadronOriginFlag));
+		      NN_jet_truthflav_v.push_back((*jet_truthflav));	
+		      
+		      
 
 		      // Sort jets wrt DL1r tag weights
 		      sort (jet_DL1r->begin(), jet_DL1r->end(), greater<int>());
@@ -996,10 +1025,62 @@ void prepare_histograms()
   mc16_max_inv_mass_lep_bjet_not_from_top->Write("2b_emu_OS_mc16_max_inv_mass_lep_bjet_not_from_top");
   mc16_min_inv_mass_lep_other_jet->Write("2b_emu_OS_mc16_min_inv_mass_lep_other_jet");
   mc16_max_inv_mass_lep_other_jet->Write("2b_emu_OS_mc16_max_inv_mass_lep_other_jet");
-  
-  
 
-
-  // Close the gists file
+  // Close the hists file
   hists_file->Close();
+
+
+  // Fill NN ROOT file
+  TFile *NN_tfile= new TFile("tt_jets_NN_input.root", "RECREATE");
+  TTree *NN_ttree = new TTree("nominal", "NN_input");
+  vector<int> *NN_tHOF, *NN_jet_truthflav;
+  float *NN_min_dR_b_from_top_to_lep, *NN_min_dR_b_not_from_top_to_lep, *NN_min_dR_not_b_to_lep;
+  float *NN_M_lep_bjet_min_dR_from_top, *NN_M_lep_bjet_min_dR_not_from_top;
+  float *NN_min_M_lep_bjet_from_top, *NN_max_M_lep_bjet_from_top;
+  float *NN_min_M_lep_bjet_not_from_top, *NN_max_M_lep_bjet_not_from_top;
+  float *NN_min_M_lep_other_jet, *NN_max_M_lep_other_jet;
+  TBranch *NN_topHadronOriginFlag_br = NN_ttree->Branch("topHadronOriginFlag", &NN_tHOF, "topHadronOriginFlag/I");
+  TBranch *NN_jet_truthflav_br = NN_ttree->Branch("jet_truthflav", &NN_jet_truthflav, "jet_truthflav/I");
+  TBranch *NN_min_dR_b_from_top_to_lep_br = NN_ttree->Branch("min_dR_b_from_top_to_lep", &NN_min_dR_b_from_top_to_lep, "min_dR_b_from_top_to_lep/F");
+  TBranch *NN_min_dR_b_not_from_top_to_lep_br = NN_ttree->Branch("min_dR_b_not_from_top_to_lep", &NN_min_dR_b_not_from_top_to_lep, "min_dR_b_not_from_top_to_lep/F");
+  TBranch *NN_min_dR_not_b_to_lep_br = NN_ttree->Branch("min_dR_not_b_to_lep", &NN_min_dR_not_b_to_lep, "min_dR_not_b_to_lep/F");
+  TBranch *NN_M_lep_bjet_min_dR_from_top_br = NN_ttree->Branch("M_lep_bjet_min_dR_br_from_top", &NN_M_lep_bjet_min_dR_from_top, "M_lep_bjet_min_dR_br_from_top/F");
+  TBranch *NN_M_lep_bjet_min_dR_not_from_top_br = NN_ttree->Branch("M_lep_bjet_min_dR_not_from_top", &NN_M_lep_bjet_min_dR_not_from_top, "M_lep_bjet_min_dR_not_from_top/F");
+  TBranch *NN_min_M_lep_bjet_from_top_br = NN_ttree->Branch("min_M_lep_bjet_from_top", &NN_min_M_lep_bjet_from_top, "min_M_lep_bjet_from_top/F");
+  TBranch *NN_max_M_lep_bjet_from_top_br = NN_ttree->Branch("max_M_lep_bjet_from_top", &NN_max_M_lep_bjet_from_top, "max_M_lep_bjet_from_top/F");
+  TBranch *NN_min_M_lep_bjet_not_from_top_br = NN_ttree->Branch("min_M_lep_bjet_not_from_top", &NN_min_M_lep_bjet_not_from_top, "min_M_lep_bjet_not_from_top/F");
+  TBranch *NN_max_M_lep_bjet_not_from_top_br = NN_ttree->Branch("max_M_lep_bjet_not_from_top", &NN_max_M_lep_bjet_not_from_top, "max_M_lep_bjet_not_from_top/F");
+  TBranch *NN_min_M_lep_other_jet_br = NN_ttree->Branch("min_M_lep_other_jet", &NN_min_M_lep_other_jet, "min_M_lep_other_jet/F");
+  TBranch *NN_max_M_lep_other_jet_br = NN_ttree->Branch("max_M_lep_other_jet", &NN_max_M_lep_other_jet, "max_M_lep_other_jet/F");
+  for (int entry=0; entry<NN_tHOF_v.size(); entry++) {
+    NN_min_dR_b_from_top_to_lep = &NN_min_dR_b_from_top_to_lep_v[entry];
+    NN_min_dR_b_not_from_top_to_lep = &NN_min_dR_b_not_from_top_to_lep_v[entry];
+    NN_min_dR_not_b_to_lep = &NN_min_dR_not_b_to_lep[entry];
+    NN_M_lep_bjet_min_dR_from_top = &NN_M_lep_bjet_min_dR_from_top_v[entry];
+    NN_M_lep_bjet_min_dR_not_from_top = &NN_M_lep_bjet_min_dR_not_from_top_v[entry];
+    NN_min_M_lep_bjet_from_top = &NN_min_M_lep_bjet_from_top[entry];
+    NN_max_M_lep_bjet_from_top = &NN_max_M_lep_bjet_from_top_v[entry];
+    NN_min_M_lep_bjet_not_from_top = &NN_min_M_lep_bjet_not_from_top_v[entry];
+    NN_max_M_lep_bjet_not_from_top = &NN_max_M_lep_bjet_not_from_top_v[entry];
+    NN_min_M_lep_other_jet = &NN_min_M_lep_other_jet_v[entry];
+    NN_tHOF = &NN_tHOF_v[entry];
+    NN_jet_truthflav = &NN_jet_truthflav_v[entry];
+    
+    NN_topHadronOriginFlag_br->Fill();
+    NN_jet_truthflav_br->Fill();
+    NN_min_dR_b_from_top_to_lep_br->Fill();
+    NN_min_dR_b_not_from_top_to_lep_br->Fill();
+    NN_min_dR_not_b_to_lep_br->Fill();
+    NN_M_lep_bjet_min_dR_from_top_br->Fill();
+    NN_M_lep_bjet_min_dR_not_from_top_br->Fill();
+    NN_min_M_lep_bjet_from_top_br->Fill();
+    NN_max_M_lep_bjet_from_top_br->Fill();
+    NN_min_M_lep_bjet_not_from_top_br->Fill();
+    NN_max_M_lep_bjet_not_from_top_br->Fill();
+    NN_min_M_lep_other_jet_br->Fill();
+    NN_max_M_lep_other_jet_br->Fill();
+    NN_ttree->Fill();
+  }
+  NN_ttree->Write("nominal", TTree::kOverwrite);
+  NN_tfile->Close();
 }
