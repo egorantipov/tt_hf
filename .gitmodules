@@ -1,0 +1,6 @@
+[submodule "KLFitter"]
+	path = KLFitter
+	url = https://github.com/KLFitter/KLFitter.git
+[submodule "bat"]
+	path = bat
+	url = https://github.com/bat/bat.git

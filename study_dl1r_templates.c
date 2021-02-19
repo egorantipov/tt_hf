@@ -68,7 +68,7 @@ int draw_n_histos(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_ti
   
   legend->Draw("same");
   
-  c->Print("Plots/" + title + ".png");
+  c->Print("Plots/fits/" + title + ".png");
   cout << "Drawn " + title + " !" << endl;
   
   return 0;
@@ -96,15 +96,15 @@ void study_dl1r_templates()
   for (int topHFFF_i=0; topHFFF_i<4; topHFFF_i++) {
     mc16_tag0_DL1r[topHFFF_i] = (TH1*)hists_file_mc->Get("DL1r_templates_"+processes[topHFFF_i]+"_1st_tag");
     double tag0_sf = mc16_tag0_DL1r[topHFFF_i]->Integral(0,  mc16_tag0_DL1r[topHFFF_i]->GetNbinsX() + 1);
-    //mc16_tag0_DL1r[topHFFF_i]->Scale(1/tag0_sf);
+    mc16_tag0_DL1r[topHFFF_i]->Scale(1/tag0_sf);
 
     mc16_tag1_DL1r[topHFFF_i] = (TH1*)hists_file_mc->Get("DL1r_templates_"+processes[topHFFF_i]+"_2nd_tag");
     double tag1_sf = mc16_tag1_DL1r[topHFFF_i]->Integral(0, mc16_tag1_DL1r[topHFFF_i]->GetNbinsX() + 1);
-    //mc16_tag1_DL1r[topHFFF_i]->Scale(1/tag1_sf);
+    mc16_tag1_DL1r[topHFFF_i]->Scale(1/tag1_sf);
     
     mc16_tag2_DL1r[topHFFF_i] = (TH1*)hists_file_mc->Get("DL1r_templates_"+processes[topHFFF_i]+"_3rd_tag");
     double tag2_sf = mc16_tag2_DL1r[topHFFF_i]->Integral(0, mc16_tag2_DL1r[topHFFF_i]->GetNbinsX() + 1);
-    //mc16_tag2_DL1r[topHFFF_i]->Scale(1/tag2_sf); 
+    mc16_tag2_DL1r[topHFFF_i]->Scale(1/tag2_sf); 
   }
 
 
@@ -114,72 +114,75 @@ void study_dl1r_templates()
   TH1 *mc16_tag0_DL1r_mix[9];
   TH1 *mc16_tag1_DL1r_mix[9];
   TH1 *mc16_tag2_DL1r_mix[9];
-  double fr_multiplier = 1;
-  vector<double> fraction_2b1l = {0.60, 0.60, 0.60, 0.70, 0.70, 0.70, 0.80, 0.80, 0.80};
-  vector<double> fraction_4b   = {0.05, 0.10, 0.15, 0.03, 0.07, 0.10, 0.03, 0.05, 0.07};
-  vector<double> fraction_3b   = {0.05, 0.10, 0.15, 0.03, 0.07, 0.10, 0.03, 0.05, 0.07};
-  vector<double> fraction_2b1c = {0.30, 0.20, 0.10, 0.24, 0.16, 0.10, 0.14, 0.10, 0.06};
+  vector<double> fraction_2b1l = {0.30, 0.30, 0.30, 0.35, 0.35, 0.35, 0.40, 0.40, 0.40};
+  vector<double> fraction_4b   = {0.15, 0.15, 0.10, 0.15, 0.10, 0.10, 0.10, 0.10, 0.10};
+  vector<double> fraction_3b   = {0.30, 0.25, 0.25, 0.25, 0.25, 0.20, 0.25, 0.20, 0.15};
+  vector<double> fraction_2b1c = {0.25, 0.30, 0.35, 0.25, 0.30, 0.35, 0.25, 0.30, 0.35};
   for (int i=0; i<fraction_2b1l.size(); i++) {
     mc16_tag0_DL1r_mix[i] = (TH1F*)mc16_tag0_DL1r[0]->Clone();
-    mc16_tag0_DL1r_mix[i]->Scale(fr_multiplier*fraction_2b1l[i]);
+    mc16_tag0_DL1r_mix[i]->Scale(fraction_2b1l[i]);
     mc16_tag1_DL1r_mix[i] = (TH1F*)mc16_tag1_DL1r[0]->Clone();
-    mc16_tag1_DL1r_mix[i]->Scale(fr_multiplier*fraction_2b1l[i]);
+    mc16_tag1_DL1r_mix[i]->Scale(fraction_2b1l[i]);
     mc16_tag2_DL1r_mix[i] = (TH1F*)mc16_tag2_DL1r[0]->Clone();
-    mc16_tag2_DL1r_mix[i]->Scale(fr_multiplier*fraction_2b1l[i]);
+    mc16_tag2_DL1r_mix[i]->Scale(fraction_2b1l[i]);
 
-    mc16_tag0_DL1r_mix[i]->Add(mc16_tag0_DL1r[1], fr_multiplier*fraction_4b[i]);
-    mc16_tag0_DL1r_mix[i]->Add(mc16_tag0_DL1r[2], fr_multiplier*fraction_3b[i]);
-    mc16_tag0_DL1r_mix[i]->Add(mc16_tag0_DL1r[3], fr_multiplier*fraction_2b1c[i]);
+    mc16_tag0_DL1r_mix[i]->Add(mc16_tag0_DL1r[1], fraction_4b[i]);
+    mc16_tag0_DL1r_mix[i]->Add(mc16_tag0_DL1r[2], fraction_3b[i]);
+    mc16_tag0_DL1r_mix[i]->Add(mc16_tag0_DL1r[3], fraction_2b1c[i]);
 
-    mc16_tag1_DL1r_mix[i]->Add(mc16_tag1_DL1r[1], fr_multiplier*fraction_4b[i]);
-    mc16_tag1_DL1r_mix[i]->Add(mc16_tag1_DL1r[2], fr_multiplier*fraction_3b[i]);
-    mc16_tag1_DL1r_mix[i]->Add(mc16_tag1_DL1r[3], fr_multiplier*fraction_2b1c[i]);
+    mc16_tag1_DL1r_mix[i]->Add(mc16_tag1_DL1r[1], fraction_4b[i]);
+    mc16_tag1_DL1r_mix[i]->Add(mc16_tag1_DL1r[2], fraction_3b[i]);
+    mc16_tag1_DL1r_mix[i]->Add(mc16_tag1_DL1r[3], fraction_2b1c[i]);
 
-    mc16_tag2_DL1r_mix[i]->Add(mc16_tag2_DL1r[1], fr_multiplier*fraction_4b[i]);
-    mc16_tag2_DL1r_mix[i]->Add(mc16_tag2_DL1r[2], fr_multiplier*fraction_3b[i]);
-    mc16_tag2_DL1r_mix[i]->Add(mc16_tag2_DL1r[3], fr_multiplier*fraction_2b1c[i]); }
+    mc16_tag2_DL1r_mix[i]->Add(mc16_tag2_DL1r[1], fraction_4b[i]);
+    mc16_tag2_DL1r_mix[i]->Add(mc16_tag2_DL1r[2], fraction_3b[i]);
+    mc16_tag2_DL1r_mix[i]->Add(mc16_tag2_DL1r[3], fraction_2b1c[i]); }
 
 
   
   // Perforn fit of the mixture with histograms
-  // TODO: Fit the mixture with iteself.
-  // TODO: Combine 2b1l, 2b1c and 3b (a combined template for the tree) and fit with two: 4b and comb.templ.
-  // TODO: Combine 2b1l and 2b1c (use a combined template and fit with 3 templates in total)
-  cout << "Deriving fits for mixture scale factor = " << fr_multiplier << endl;
   vector<TH1*> tag2_fit_results;
   TH1 *empty_hists = new TH1F("empty_hist", "empty_hist", 30, -15, 15);
-  TObjArray *tag2_templates = new TObjArray(4);
+  TObjArray *tag2_4_templates = new TObjArray(4);
   for (int topHFFF_i=0; topHFFF_i<4; topHFFF_i++) {
-    //mc16_tag2_DL1r[topHFFF_i]->Scale(fr_multiplier);
-    tag2_templates->Add(mc16_tag2_DL1r[topHFFF_i]); }
+    tag2_4_templates->Add(mc16_tag2_DL1r[topHFFF_i]); }
 
-  // Create a combined templates
-  TH1 *combined_2b1l_3b_2b1c_template = new TH1F("combined_2b+3b", "combined_2b+3b", 30, -15, 15);
-  combined_2b1l_3b_2b1c_template->Add(mc16_tag2_DL1r[0]); // 2b1l
-  combined_2b1l_3b_2b1c_template->Add(mc16_tag2_DL1r[2]); // 3b
-  combined_2b1l_3b_2b1c_template->Add(mc16_tag2_DL1r[3]); // 2b1c
-  TObjArray *tag2_2_templates = new TObjArray(2);
-  tag2_2_templates->Add(combined_2b1l_3b_2b1c_template);
-  tag2_2_templates->Add(mc16_tag2_DL1r[1]);
-  TH1 *combined_2b1l_2b1c_template = new TH1F("combined_2b", "combined_2b", 30, -15, 15);
-  combined_2b1l_2b1c_template->Add(mc16_tag2_DL1r[0]); // 2b1l
-  combined_2b1l_2b1c_template->Add(mc16_tag2_DL1r[3]); // 2b1c
-  TObjArray *tag2_3_templates = new TObjArray(3);
-  tag2_3_templates->Add(combined_2b1l_2b1c_template);
-  tag2_3_templates->Add(mc16_tag2_DL1r[1]);
-  tag2_3_templates->Add(mc16_tag2_DL1r[2]);
-  
+  // Loop over predefined fractions
   for (int i=0; i<fraction_2b1l.size(); i++) {
+  
+    // Create combined templates
+    // (1) 3b+2b1l+2b1c, (2) 4b
+    TH1 *combined_2b1l_3b_2b1c_template = new TH1F("combined_2b+3b", "combined_2b+3b", 30, -15, 15);
+    combined_2b1l_3b_2b1c_template->Add(mc16_tag2_DL1r[0], fraction_2b1l[i]); // 2b1l
+    combined_2b1l_3b_2b1c_template->Add(mc16_tag2_DL1r[2], fraction_3b[i]); // 3b
+    combined_2b1l_3b_2b1c_template->Add(mc16_tag2_DL1r[3], fraction_2b1c[i]); // 2b1c
+    combined_2b1l_3b_2b1c_template->Scale(1/combined_2b1l_3b_2b1c_template->Integral(0, combined_2b1l_3b_2b1c_template->GetNbinsX()+1));
+    TObjArray *tag2_2_templates = new TObjArray(2);
+    tag2_2_templates->Add(combined_2b1l_3b_2b1c_template);
+    tag2_2_templates->Add(mc16_tag2_DL1r[1]);
+    
+    // (1) 4b+3b, (2) 2b1l, (3) 2b1c
+    TH1 *combined_4b_3b_template = new TH1F("combined_extra_b", "combined_extra_b", 30, -15, 15);
+    combined_4b_3b_template->Add(mc16_tag2_DL1r[1], fraction_4b[i]); // 4b
+    combined_4b_3b_template->Add(mc16_tag2_DL1r[2], fraction_3b[i]); // 3b
+    combined_4b_3b_template->Scale(1/combined_4b_3b_template->Integral(0, combined_4b_3b_template->GetNbinsX()+1));
+    TObjArray *tag2_3_templates = new TObjArray(3);
+    tag2_3_templates->Add(mc16_tag2_DL1r[0]);
+    tag2_3_templates->Add(combined_4b_3b_template);
+    tag2_3_templates->Add(mc16_tag2_DL1r[3]);
+    
+    // Collect templates and run the fit
     cout << "\n\n\n\n" << endl;
-    cout << "Performing fit [" << i << "] for\n\t2b1l frac. = " << fraction_2b1l[i] << ";\n\t4b frac. = " << fraction_4b[i] << ";\n\t3b frac. = " << fraction_3b[i] << ";\n\t2b1c frac. = " << fraction_2b1c[i] << ";" << endl;
+    //cout << "Performing fit [" << i << "] for\n\t2b1l frac. = " << fraction_2b1l[i] << ";\n\t4b frac. = " << fraction_4b[i] << ";\n\t3b frac. = " << fraction_3b[i] << ";\n\t2b1c frac. = " << fraction_2b1c[i] << ";" << endl;
+    cout << "Performing fit [" << i << "] for\n\t2b1l frac. = " << fraction_2b1l[i] <<";\n\t3b4b frac. = " << fraction_4b[i]+fraction_3b[i] << ";\n\t2b1c frac. = " << fraction_2b1c[i] << ";" << endl;
     TObjArray *tag2_self_template = new TObjArray(1);
     tag2_self_template->Add(mc16_tag2_DL1r_mix[i]);
     tag2_self_template->Add(mc16_tag2_DL1r_mix[i]);
-    //TFractionFitter *fit = new TFractionFitter(mc16_tag2_DL1r_mix[i], tag2_templates);
+    //TFractionFitter *fit = new TFractionFitter(mc16_tag2_DL1r_mix[i], tag2_4_templates);
     //TFractionFitter *fit = new TFractionFitter(mc16_tag2_DL1r_mix[i], tag2_self_template);
     //TFractionFitter *fit = new TFractionFitter(mc16_tag2_DL1r_mix[i], tag2_2_templates);
     TFractionFitter *fit = new TFractionFitter(mc16_tag2_DL1r_mix[i], tag2_3_templates);
-    fit->Constrain(0, 0.0, 100.0); // constrain fraction 1 to be between 0 and 1
+    fit->Constrain(0, 0.0, 100.0); // constrain fraction 1 to be between 0 and 100
     fit->Constrain(1, 0.0, 100.0);
     fit->Constrain(2, 0.0, 100.0);
     //fit->Constrain(3, 0.0, 100.0);

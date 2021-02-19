@@ -1,0 +1,6 @@
+setupATLAS
+lsetup "root 6.14.08-x86_64-slc6-gcc62-opt"
+lsetup git
+git init
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`/KLFitter/build/lib

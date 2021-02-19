@@ -26,26 +26,26 @@ int draw_n_histos(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_ti
   if (h_vec.size()==0) { cout << "h_vec is emmpty, aborting!!!" << endl; return 0; }
   
   
-  TCanvas *c = new TCanvas(h_title[0], h_title[0], 1600, 900);
+  TCanvas *c = new TCanvas(h_title[0], h_title[0], 1600, 1200);
   gStyle->SetOptStat(0);
   gPad->SetGrid();
   if (normalize==false) gPad->SetLogy();
   double legend_height = 0.09*h_vec.size();
   double legend_y1 = 0.90 - legend_height;
-  TLegend *legend = new TLegend(0.80, legend_y1, 0.90, 0.90);
+  TLegend *legend = new TLegend(0.70, legend_y1, 0.90, 0.90);
 
   for (int i=0; i<h_vec.size(); i++){
     // TEST 
     if (!h_vec[i]) cout << "Requested object TH_[" << i << "] wasn't found!" << endl;
     
-    double h_int = h_vec[i]->Integral(0, h_vec[i]->GetNbinsX()+1);
+    double h_int = h_vec[i]->Integral(1, h_vec[i]->GetNbinsX());
     double sf = 1/h_int;
     cout << "Hist: " << h_title[i] << " , Integral: " << h_int << endl;
     
     h_vec[i]->SetMarkerStyle(20);
     h_vec[i]->SetMarkerSize(2);
-    h_vec[i]->SetMarkerColor(i+1);
-    h_vec[i]->SetLineColor(i+1);
+    h_vec[i]->SetMarkerColor(i+2);
+    h_vec[i]->SetLineColor(i+2);
     h_vec[i]->SetLineWidth(2);
     if (normalize==true) h_vec[i]->Scale(sf);
     
@@ -78,7 +78,7 @@ int draw_n_histos(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_ti
 // ################
 // ##    MAIN    ##
 // ################
-void draw_histos()
+void draw_hists()
 {
   // Open the file with histograms
   TFile *hists_file_mc = TFile::Open("hists_mc.root");
@@ -156,7 +156,29 @@ void draw_histos()
     mc16_dR_min_lep1_b_from_top_tags[i] = (TH1*)hists_file_mc->Get(title3);
     mc16_dR_min_lep1_b_not_from_top_tags[i] = (TH1*)hists_file_mc->Get(title4);
 }
-  
+
+  // mid_dR(obj, obj) proposed by Sasha
+  TH1 *mc16_minDeltaR_b_from_top_to_b = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_minDeltaR_b_from_top_to_b");
+  TH1 *mc16_minDeltaR_b_not_from_top_to_b = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_minDeltaR_b_not_from_top_to_b");
+  TH1 *mc16_minDeltaR_not_b_to_b = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_minDeltaR_not_b_to_b");
+  TH1 *mc16_minDeltaR_b_from_top_to_jet = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_minDeltaR_b_from_top_to_jet");
+  TH1 *mc16_minDeltaR_b_not_from_top_to_jet = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_minDeltaR_b_not_from_top_to_jet");
+  TH1 *mc16_minDeltaR_not_b_to_jet = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_minDeltaR_not_b_to_jet");
+  TH1 *mc16_minDeltaR_b_from_top_to_lep = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_minDeltaR_b_from_top_to_lep");
+  TH1 *mc16_minDeltaR_b_not_from_top_to_lep = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_minDeltaR_b_not_from_top_to_lep");
+  TH1 *mc16_minDeltaR_not_b_to_lep = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_minDeltaR_not_b_to_lep");
+
+  // Invariant mass
+  TH1 *mc16_inv_mass_lep_bjet_from_top_min_dR = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_inv_mass_lep_bjet_from_top_min_dR");
+  TH1 *mc16_inv_mass_lep_bjet_not_from_top_min_dR = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_inv_mass_lep_bjet_not_from_top_min_dR");
+  TH1 *mc16_inv_mass_lep_btag_from_top_min_dR = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_inv_mass_lep_btag_from_top_min_dR");
+  TH1 *mc16_inv_mass_lep_btag_not_from_top_min_dR = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_inv_mass_lep_btag_not_from_top_min_dR");
+  TH1 *mc16_min_inv_mass_lep_bjet_from_top = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_min_inv_mass_lep_bjet_from_top");
+  TH1 *mc16_max_inv_mass_lep_bjet_from_top = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_max_inv_mass_lep_bjet_from_top");
+  TH1 *mc16_min_inv_mass_lep_bjet_not_from_top = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_min_inv_mass_lep_bjet_not_from_top");
+  TH1 *mc16_max_inv_mass_lep_bjet_not_from_top = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_max_inv_mass_lep_bjet_not_from_top");
+  TH1 *mc16_min_inv_mass_lep_other_jet = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_min_inv_mass_lep_other_jet");
+  TH1 *mc16_max_inv_mass_lep_other_jet = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_max_inv_mass_lep_other_jet");
 
   
   // Draw the plots in two steps:
@@ -263,6 +285,35 @@ void draw_histos()
   vector<TString> lep_dR_title = {"dR lep0 - lep1"};
   vector<TH1*> mc16_dR_lep0_lep1_collection = {mc16_dR_lep0_lep1};
   int mc16_dR_lep0_lep1_draw = draw_n_histos(mc16_dR_lep0_lep1_collection, lep_dR_title, "#bf{dR lep0-lep1}","dR_lep0_lep1",  true, 0, 0.6);
+
+
+  // mid_dR(obj, obj) proposed by Sasha
+  vector<TString> dR_jet_obj_title = {"other non-b-jet", "other b-jet", "b-jet from top"};
+  
+  vector<TH1*> mc16_min_dR_jet_bjet_collection = {mc16_minDeltaR_not_b_to_b, mc16_minDeltaR_b_not_from_top_to_b, mc16_minDeltaR_b_from_top_to_b};
+  int  mc16_min_dR_jet_bjet_draw = draw_n_histos(mc16_min_dR_jet_bjet_collection, dR_jet_obj_title, "#bf{#DeltaR_{min}(jet, b-jet)}", "min_dR_jet_bjet", true, 0, 0.2);
+  
+  vector<TH1*> mc16_min_dR_jet_jet_collection = {mc16_minDeltaR_not_b_to_jet, mc16_minDeltaR_b_not_from_top_to_jet, mc16_minDeltaR_b_from_top_to_jet};
+  int mc16_min_dR_jet_jet_draw = draw_n_histos(mc16_min_dR_jet_jet_collection, dR_jet_obj_title, "#bf{#DeltaR_{min}(jet, jet)}", "min_dR_jet_jet", true, 0, 0.2);
+
+  vector<TH1*> mc16_min_dR_je_lep_collection = {mc16_minDeltaR_not_b_to_lep, mc16_minDeltaR_b_not_from_top_to_lep, mc16_minDeltaR_b_from_top_to_lep};
+  int mc16_min_dR_jet_lep_draw = draw_n_histos(mc16_min_dR_je_lep_collection, dR_jet_obj_title, "#bf{#DeltaR_{min}(jet, lepton)}", "min_dR_jet_lep", true, 0, 0.2);
+
+
+  // Invariant mass
+  vector<TString> mc16_inv_mass_lep_bjet_min_dR_title = {"from top", "not from top"};
+  vector<TH1*> mc16_inv_mass_lep_bjet_min_dR_collection = {mc16_inv_mass_lep_bjet_from_top_min_dR, mc16_inv_mass_lep_bjet_not_from_top_min_dR};
+  int mc16_inv_mass_lep_bjet_min_dR_draw = draw_n_histos(mc16_inv_mass_lep_bjet_min_dR_collection, mc16_inv_mass_lep_bjet_min_dR_title, "#bf{M(bjet - closest lep.)^{inv}}", "inv_mass_lep_bjet_min_dR", true, 0, 0.02);
+
+  vector<TH1*> mc16_inv_mass_lep_btag_min_dR_collection = {mc16_inv_mass_lep_btag_from_top_min_dR, mc16_inv_mass_lep_btag_not_from_top_min_dR};
+  int mc16_inv_mass_lep_btag_min_dR_draw = draw_n_histos(mc16_inv_mass_lep_btag_min_dR_collection, mc16_inv_mass_lep_bjet_min_dR_title, "#bf{M(btag - closest lep.)^{inv}}", "inv_mass_lep_btag_min_dR", true, 0, 0.02);
+
+  vector<TString> mc16_inv_mass_lep_obj_title = {"other non-b-jet", "other b-jet", "b-jet from top"};
+  vector<TH1*> mc16_min_inv_mass_lep_obj_collection = {mc16_min_inv_mass_lep_other_jet, mc16_min_inv_mass_lep_bjet_not_from_top, mc16_min_inv_mass_lep_bjet_from_top};
+  int mc16_min_inv_mass_lep_obj_draw = draw_n_histos(mc16_min_inv_mass_lep_obj_collection, mc16_inv_mass_lep_obj_title, "#bf{M(jet - lep.)^{inv}_{min}}", "inv_mass_min_lep_obj", true, 0, 0.02);
+
+  vector<TH1*> mc16_max_inv_mass_lep_obj_collection = {mc16_max_inv_mass_lep_other_jet, mc16_max_inv_mass_lep_bjet_not_from_top, mc16_max_inv_mass_lep_bjet_from_top};
+  int mc16_max_inv_mass_lep_obj_draw = draw_n_histos(mc16_max_inv_mass_lep_obj_collection, mc16_inv_mass_lep_obj_title, "#bf{M(jet - lep.)^{inv}_{max}}", "inv_mass_max_lep_obj", true, 0, 0.02);
 
 
   // Close the hists file
