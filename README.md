@@ -1,7 +1,4 @@
 # tt+HF analysis macros
-<<<<<<< HEAD
-This repository contains some useful mactor for the tt+HF OSU analysis. Macros to be run at lxplus.
-=======
 This repository contains some useful macros for the tt+HF OSU analysis. To be run at lxplus.
 
 ## Get the repo
@@ -13,7 +10,6 @@ git clone https://github.com/egorantipov/tt_hf.git
 ```bash
 source setup.sh
 ```
->>>>>>> dev/KLFitter-submodule
 
 ## Prepare a histfile
 KLFitter implementation is a work in progress. Given the direction on KLFitter setup, one shouldn't run just `roor -l -b prepare_hists_mc.root+`. To prepare a root files with histograms for MC and data run:
