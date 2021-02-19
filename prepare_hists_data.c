@@ -68,7 +68,7 @@ vector<TString> get_list_of_files(TString dirname, vector<TString> container = {
 // ##############
 // ##   MAIN   ##
 // ##############
-void prepare_histo_data()
+void prepare_hists_data()
 {
   // Create a list of directories with ntuples
   TString path_to_ntuples =  "/eos/atlas/atlascerngroupdisk/phys-top/ttjets/v4/data/";

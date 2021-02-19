@@ -4,5 +4,5 @@
 
   gROOT->ProcessLine(".include ./KLFitter/include");
   gROOT->ProcessLine(".include ./KLFitter/build/include");
-  gROOT->ProcessLine(".x prepare_histograms.c+");
+  gROOT->ProcessLine(".x prepare_hists_mc.c+");
 }

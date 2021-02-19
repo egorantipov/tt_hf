@@ -6,16 +6,26 @@ This repository contains some useful macros for the tt+HF OSU analysis. To be ru
 git clone https://github.com/egorantipov/tt_hf.git
 ```
 
-## Prepare a histfile
-To prepare a root file with histograms run:
+## Setup the environment
 ```bash
-prepare_histograms.c+
+source setup.sh
 ```
-Output of the macro is `hists_mc.root` file.
+
+## Prepare a histfile
+KLFitter implementation is a work in progress. Given the direction on KLFitter setup, one shouldn't run just `roor -l -b prepare_hists_mc.root+`. To prepare a root files with histograms for MC and data run:
+```bash
+root -l -b load_klf.C+
+root -l -b prepare_hists_data.c+
+```
+Outputs are `hists_mc.root` and `hists_data.root`.
 
 ## Draw histograms
 To draw histograms prepared by the `prepare_histograms.c` run:
 ```bash
 draw_histos.c
 ```
-The optut of the macro will be stored in the `Plots/` folder.
+To draw Data/MC comparison run:
+```bash
+root -l -b draw_data_mc.c
+```
+The optut of the macros will be stored in the `Plots/` folder.
