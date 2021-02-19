@@ -78,7 +78,7 @@ int draw_n_histos(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_ti
 // ################
 // ##    MAIN    ##
 // ################
-void draw_histos()
+void draw_hists()
 {
   // Open the file with histograms
   TFile *hists_file_mc = TFile::Open("hists_mc.root");

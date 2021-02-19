@@ -1,7 +1,7 @@
 # tt+HF analysis macros
 This repository contains some useful macros for the tt+HF OSU analysis. To be run at lxplus.
 
-## Get the repo:
+## Get the repo
 ```bash
 git clone https://github.com/egorantipov/tt_hf.git
 ```
@@ -22,7 +22,7 @@ Outputs are `hists_mc.root` and `hists_data.root`.
 ## Draw histograms
 To draw histograms prepared by the `prepare_histograms.c` run:
 ```bash
-draw_histos.c
+root -l -b draw_hists.c
 ```
 To draw Data/MC comparison run:
 ```bash
