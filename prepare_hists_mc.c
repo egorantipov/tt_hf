@@ -125,7 +125,7 @@ void prepare_hists_mc()
   TH1 *h_jet_pt[3];
   for (int i=0; i<3; i++) {
       TString title = "jet_pt_" + to_string(i);
-      h_jet_pt[i] = new TH1F(title, title, 100, 0, 1000); }
+      h_jet_pt[i] = new TH1F(title, title, 10, 0, 400); }
  
   // the first three DL1r tag distributions for 2b1l / 4b / 3b / 2b1c, 2b channel
   TH1 *h_tag0_DL1r[4];
@@ -143,8 +143,9 @@ void prepare_hists_mc()
   TH1 *h_met = new TH1F("h_met", "h_met", 20, 0, 1000);
   TH1 *h_met_phi = new TH1F("h_met_phi", "h_met_phi", 40, -4, 4);
 
-  // bjets_n, 2b channel
-  TH1 *h_bjets_n = new TH1F("h_bjets_n", "h_bjets_n", 4, 0, 4);
+  // jets_n, 2b channel
+  TH1 *h_jets_n = new TH1F("h_jets_n", "h_jets_n", 6, 2, 8);
+  TH1 *h_bjets_n = new TH1F("h_bjets_n", "h_bjets_n", 6, 2, 8);
   
   // leptons, 2b channel
   TH1 *h_lep0_pt = new TH1F("h_lep0_pt", "h_lep0_pt", 20, 0, 1000);
@@ -170,6 +171,21 @@ void prepare_hists_mc()
   TH1 *h_min_inv_mass_lep_other_jet = new TH1F("h_min_inv_mass_lep_other_jet", "h_min_inv_mass_lep_other_jet", 1000, 0, 1000);
   TH1 *h_max_inv_mass_lep_other_jet = new TH1F("h_max_inv_mass_lep_other_jet", "h_max_inv_mass_lep_other_jet", 1000, 0, 1000);
 
+  // topHFF hists
+  TH1 *h_topHFFF = new TH1F("topHFFF", "topHFFF", 5, 0, 5);
+  
+  // NN variables hists
+  TH1 *h_m_bjet_lep_min_dR = new TH1F("h_m_bjet_lep_min_dR", "h_m_bjet_lep_min_dR", 120, 0, 700);
+  TH1 *h_m_bjet_lep_min = new TH1F("h_m_bjet_lep_min", "h_m_bjet_lep_min", 120, 0, 700);
+  TH1 *h_m_bjet_lep_max = new TH1F("h_m_bjet_lep_max", "h_m_bjet_lep_max", 120, 0, 700);
+  TH1 *h_m_bjet_el = new TH1F("h_m_bjet_el", "h_m_bjet_el", 120, 0, 700);
+  TH1 *h_m_bjet_mu = new TH1F("h_m_bjet_mu", "h_m_bjet_mu", 120, 0, 700);
+  TH1 *h_dR_bjet_lep0 = new TH1F("h_min_dR_bjet_lep0", "h_min_dR_bjet_lep0", 20, 0, 5);
+  TH1 *h_dR_bjet_lep1 = new TH1F("h_min_dR_bjet_lep1", "h_min_dR_bjet_lep1", 20, 0, 5);
+  TH1 *h_min_dR_bjet_lep = new TH1F("h_min_dR_bjet_lep", "h_min_dR_bjet_lep", 20, 0, 5);
+  TH1 *h_min_dR_jet_bjet = new TH1F("h_min_dR_jet_bjet", "h_min_dR_jet_bjet", 20, 0, 5);
+
+
   // Initialize KLFitter
   KLFitter::Fitter fitter{};
   
@@ -183,8 +199,8 @@ void prepare_hists_mc()
   fitter.SetLikelihood(&likelihood);
 
 
-  // Create a ROOT file for NN
-  vector<vector<int>> NN_tHOF_v, NN_jet_truthflav_v;
+  // Create vars for NN
+  vector<vector<int>> NN_tHOF_v, NN_jet_DL1r_77_v;
 
 
   // Loop over directories with ntuples collections
@@ -507,6 +523,9 @@ void prepare_hists_mc()
 		  // 2+b (tags), emu, OS
 		  if (emu_cut*OS_cut*btags_n2_cut*topHFFF_cut*jets_n_cut == true) {
 		    
+		    // topHFFF:
+		    h_topHFFF->Fill(topHFFF, weights);
+
 		    // MET hists:
 		    h_met->Fill(met*0.001, weights);
 		    h_met_phi->Fill(met_phi, weights);
@@ -516,9 +535,8 @@ void prepare_hists_mc()
 		    for (int i=0; i<3; i++) { h_jet_pt[i]->Fill((*jet_pt)[i]*0.001, weights); }
 		    
 
-		    // btags_n hist:
-		    int btags_n = 0;
-		    for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) { btags_n ++; }
+		    // jets_n hist:
+		    h_jets_n->Fill((*jet_pt).size(), weights);
 		    h_bjets_n->Fill(btags_n, weights);
 		    
 
@@ -582,7 +600,77 @@ void prepare_hists_mc()
 		    h_minDeltaR_lep0_btags_not_from_top->Fill(min_dR1_not_top, weights);
 		    h_minDeltaR_lep1_btags_from_top->Fill(min_dR2_top, weights);
 		    h_minDeltaR_lep1_btags_not_from_top->Fill(min_dR2_not_top, weights);
+		
 		    
+
+		    // NN variables
+		    vector<int> NN_tHOF_v_one_event;
+		    vector<int> NN_jet_DL1r_77_v_one_event;
+
+		  
+		    double min_dR0 = 999999.;
+		    double min_dR1 = 999999.;
+
+		    for (int jet_i=0; jet_i<(*jet_pt).size(); jet_i++) {
+
+		      NN_tHOF_v_one_event.push_back((*topHadronOriginFlag)[jet_i]);
+		      NN_jet_DL1r_77_v_one_event.push_back((*jet_DL1r_77)[jet_i]);
+		      
+		      if ((*jet_DL1r_77)[jet_i]==1) {
+
+			// Compute min_dR bjet-lep0/1
+			double dR0 = 0;
+			double dR1 = 0;
+
+			if ((*mu_pt)[0]>(*el_pt)[0]) {
+			  dR0 = mu_lvec.DeltaR(jets_lvec[jet_i]);
+			  dR1 = el_lvec.DeltaR(jets_lvec[jet_i]); }
+			else {
+			  dR0 = mu_lvec.DeltaR(jets_lvec[jet_i]);
+			  dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]); }
+
+			h_dR_bjet_lep0->Fill(dR0, weights);
+			h_dR_bjet_lep1->Fill(dR1, weights);
+			h_min_dR_bjet_lep->Fill( min(dR0, dR1), weights );
+
+			// Compute inv masses for bjet-lep pairs
+			// bjet and the closest lepton
+			double m_bjet_lep = 0;
+			double dr_bjet_el = jets_lvec[jet_i].DeltaR(el_lvec);
+			double dr_bjet_mu = jets_lvec[jet_i].DeltaR(mu_lvec);
+			if (dr_bjet_el <= dr_bjet_mu) { m_bjet_lep = (jets_lvec[jet_i] + el_lvec).M(); }
+			else { m_bjet_lep = (jets_lvec[jet_i] + mu_lvec).M(); }
+			if (m_bjet_lep!=0) h_m_bjet_lep_min_dR->Fill(m_bjet_lep, weights);
+			// bjet and el/mu
+			h_m_bjet_el->Fill( (jets_lvec[jet_i] + el_lvec).M() , weights);
+			h_m_bjet_mu->Fill( (jets_lvec[jet_i] + mu_lvec).M() , weights);
+			// bjet and lepton to min/max inv mass
+			double m_max_bjet_lep = max((jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M());
+			double m_min_bjet_lep = min((jets_lvec[jet_i] + el_lvec).M(), (jets_lvec[jet_i] + mu_lvec).M());
+			h_m_bjet_lep_max->Fill(m_max_bjet_lep, weights);
+			h_m_bjet_lep_min->Fill(m_min_bjet_lep, weights);
+
+		      } // [if] - DL1r tagget jet_i
+
+		      // Compute min inv mass for jet-bjet pairs
+		      for (int jet_j=0; jet_j<(*jet_pt).size(); jet_j++) {
+			if (jet_i==jet_j) continue;
+			double min_dR_jet_bjet = 999999.;
+			if ( (*jet_DL1r_77)[jet_j]==1) {
+			  double dR_jet_bjet = jets_lvec[jet_i].DeltaR(jets_lvec[jet_j]);
+			  min_dR_jet_bjet = min(min_dR_jet_bjet, dR_jet_bjet);
+			} // [if] - DL1r tagger jet_j
+
+			h_min_dR_jet_bjet->Fill(min_dR_jet_bjet, weights);
+
+		      } // [jet_j] - loop over jets
+
+		    } // [jet_i] - loop over jets
+		    
+		    NN_tHOF_v.push_back(NN_tHOF_v_one_event);
+                    NN_jet_DL1r_77_v.push_back(NN_jet_DL1r_77_v_one_event);
+
+
 		  } // 2+b (tags) selection
 
 		  
@@ -740,10 +828,6 @@ void prepare_hists_mc()
 		      if (min_inv_mass_lep_other_jet!=999999) h_min_inv_mass_lep_other_jet->Fill(min_inv_mass_lep_other_jet, weights);
 		      if (max_inv_mass_lep_other_jet!=0) h_max_inv_mass_lep_other_jet->Fill(max_inv_mass_lep_other_jet, weights);
 
-
-		      // Fill the NN vector variables
-		      NN_tHOF_v.push_back((*topHadronOriginFlag));
-		      NN_jet_truthflav_v.push_back((*jet_truthflav));	
 		      
 		      
 
@@ -801,7 +885,7 @@ void prepare_hists_mc()
 
   // pT of the three leading jets, 2b channel 
   for (int i=0; i<3; i++) { 
-    TString title = "2b_emu_OS_pt_jet_" + to_string(i);
+    TString title = "2b_emu_OS_jet_pt_" + to_string(i);
     h_jet_pt[i]->Write(title); }
   
 
@@ -820,7 +904,8 @@ void prepare_hists_mc()
   h_met->Write("2b_emu_OS_met");
   h_met_phi->Write("2b_emu_OS_met_phi");
   
-  // bjets_n, 2b channel
+  // jets_n, 2b channel
+  h_jets_n->Write("2b_emu_OS_jets_n");
   h_bjets_n->Write("2b_emu_OS_bjets_n");
   
   // leptons, 2b channel 
@@ -847,22 +932,36 @@ void prepare_hists_mc()
   h_min_inv_mass_lep_other_jet->Write("2b_emu_OS_h_min_inv_mass_lep_other_jet");
   h_max_inv_mass_lep_other_jet->Write("2b_emu_OS_h_max_inv_mass_lep_other_jet");
 
+  // topHFFF
+  h_topHFFF->Write("2b_emu_OS_topHFFF");
+
+  // NN variables hists 
+  h_m_bjet_lep_min_dR->Write("NN__2b_emu_OS_m_bjet_lep_min_dR");
+  h_m_bjet_lep_min->Write("NN__2b_emu_OS_m_bjet_lep_min");
+  h_m_bjet_lep_max->Write("NN__2b_emu_OS_m_bjet_lep_max");
+  h_m_bjet_el->Write("NN__2b_emu_OS_m_bjet_el");
+  h_m_bjet_mu->Write("NN__2b_emu_OS_m_bjet_mu");
+  h_dR_bjet_lep0->Write("NN__2b_emu_OS_dR_bjet_lep0");
+  h_dR_bjet_lep1->Write("NN__2b_emu_OS_dR_bjet_lep1");
+  h_min_dR_bjet_lep->Write("NN__2b_emu_OS_min_dR_bjet_lep");
+  h_min_dR_jet_bjet->Write("NN__2b_emu_OS_min_dR_jet_bjet");
+
   // Close the hists file
   hists_file->Close();
 
 
   // Fill NN ROOT file
-  TFile *NN_tfile= new TFile("tt_jets_NN_input.root", "RECREATE");
+  TFile *NN_tfile = new TFile("tt_jets_NN_input.root", "RECREATE");
   TTree *NN_ttree = new TTree("nominal", "NN_input");
-  vector<int> *NN_tHOF, *NN_jet_truthflav;
-  TBranch *NN_topHadronOriginFlag_br = NN_ttree->Branch("topHadronOriginFlag", &NN_tHOF, "topHadronOriginFlag/I");
-  TBranch *NN_jet_truthflav_br = NN_ttree->Branch("jet_truthflav", &NN_jet_truthflav, "jet_truthflav/I");
+  vector<int> *NN_tHOF, *NN_jet_DL1r_77;
+  TBranch *NN_topHadronOriginFlag_br = NN_ttree->Branch("topHadronOriginFlag", &NN_tHOF, "vector<int>");
+  TBranch *NN_jet_DL1r_77_tag_br = NN_ttree->Branch("jet_isbtagged_DL1r_77", &NN_jet_DL1r_77, "vector<int>");
   for (int entry=0; entry<NN_tHOF_v.size(); entry++) {
     NN_tHOF = &NN_tHOF_v[entry];
-    NN_jet_truthflav = &NN_jet_truthflav_v[entry];
+    NN_jet_DL1r_77 = &NN_jet_DL1r_77_v[entry];
     
     NN_topHadronOriginFlag_br->Fill();
-    NN_jet_truthflav_br->Fill();
+    NN_jet_DL1r_77_tag_br->Fill();
     NN_ttree->Fill();
   }
   NN_ttree->Write("nominal", TTree::kOverwrite);

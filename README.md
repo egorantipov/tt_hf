@@ -2,8 +2,17 @@
 This repository contains some useful macros for the tt+HF OSU analysis. To be run at lxplus.
 
 ## Get the repo
+### Upload with submodules:
 ```bash
-git clone https://github.com/egorantipov/tt_hf.git
+git clone --recursive https://github.com/egorantipov/tt_hf.git
+```
+
+### Setup KLFitter
+```bash
+cd KLFitter
+mkdir build && cd build
+cmake3 -DBUILTIN_BAT=TRUE ..
+make -j
 ```
 
 ## Setup the environment
