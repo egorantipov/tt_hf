@@ -8,11 +8,15 @@
 #include <TLegend.h>
 #include <TPad.h>
 #include <TMath.h>
+#include <TColor.h>
 
 #include <iostream>
 #include <sstream>
 #include <vector>
 using namespace std;
+
+//Colors: red , green, blue, orange, cyan, magenta, yellow
+vector<Int_t> colors = {632, 416+1, 600, 800-3, 432+2, 616+1, 400+1};
 
 
 
@@ -44,13 +48,14 @@ int draw_n_histos(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_ti
     
     h_vec[i]->SetMarkerStyle(20);
     h_vec[i]->SetMarkerSize(2);
-    h_vec[i]->SetMarkerColor(i+2);
-    h_vec[i]->SetLineColor(i+2);
-    h_vec[i]->SetLineWidth(2);
+    h_vec[i]->SetMarkerColor(colors[i]);
+    //h_vec[i]->SetLineColor(i+2);
+    h_vec[i]->SetLineColor(colors[i]);
+    h_vec[i]->SetLineWidth(4);
     if (normalize==true) h_vec[i]->Scale(sf);
     
     if (i==0) {
-      h_vec[i]->Draw("C");
+      h_vec[i]->Draw("hist");
       h_vec[i]->SetTitle(title);
       
       if (normalize==false) {
@@ -58,12 +63,14 @@ int draw_n_histos(vector<TH1*> h_vec, vector<TString> h_title, TString x_axis_ti
 	h_vec[i]->GetYaxis()->SetTitle("#bf{Events}"); }
       
       else {
-	h_vec[i]->GetYaxis()->SetRangeUser(0, y_max);
-	h_vec[i]->GetYaxis()->SetTitle("#bf{Events norm to 1}"); }
+	if (y_min==0) y_min = 1;
+	h_vec[i]->GetYaxis()->SetRangeUser(y_min, y_max);
+	h_vec[i]->GetYaxis()->SetTitle("#bf{Events norm to 1}"); 
+	gPad->SetLogy(); }
       
       h_vec[i]->GetXaxis()->SetTitle(x_axis_title); }
     
-    else { h_vec[i]->Draw("same C"); }
+    else { h_vec[i]->Draw("hist same"); }
     legend->AddEntry(h_vec[i], h_title[i]); }
   legend->Draw("same");
   
@@ -180,11 +187,17 @@ void draw_hists()
   TH1 *mc16_min_inv_mass_lep_other_jet = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_min_inv_mass_lep_other_jet");
   TH1 *mc16_max_inv_mass_lep_other_jet = (TH1*)hists_file_mc->Get("2b_emu_OS_mc16_max_inv_mass_lep_other_jet");
 
+  // topHFFF overlap removal studies
+  TH1 *mc16_bjets_n_411076 = (TH1*)hists_file_mc->Get("topHFFF_study_2b_emu_OS_bjets_n_411076");
+  TH1 *mc16_bjets_n_411077 = (TH1*)hists_file_mc->Get("topHFFF_study_2b_emu_OS_bjets_n_411077");
+  TH1 *mc16_bjets_n_411078 = (TH1*)hists_file_mc->Get("topHFFF_study_2b_emu_OS_bjets_n_411078");
+  TH1 *mc16_bjets_n_410472 = (TH1*)hists_file_mc->Get("topHFFF_study_2b_emu_OS_bjets_n_410472");
+
   
   // Draw the plots in two steps:
   // (1) prepare different combinations of hists (vectors) to draw them on one canvas
   // (2) call a function to draw the collection of hists on one canvas
-  
+  /*
   // First three tags for same process
   vector<TString> mc16_DL1r_topHFFF_3tags_title = {"1st tag", "2nd tag", "3rd tag"};
   vector<TH1*> mc16_DL1r_topHFFF0_3tags = {mc16_tag0_DL1r[0], mc16_tag1_DL1r[0], mc16_tag2_DL1r[0]};
@@ -314,6 +327,12 @@ void draw_hists()
 
   vector<TH1*> mc16_max_inv_mass_lep_obj_collection = {mc16_max_inv_mass_lep_other_jet, mc16_max_inv_mass_lep_bjet_not_from_top, mc16_max_inv_mass_lep_bjet_from_top};
   int mc16_max_inv_mass_lep_obj_draw = draw_n_histos(mc16_max_inv_mass_lep_obj_collection, mc16_inv_mass_lep_obj_title, "#bf{M(jet - lep.)^{inv}_{max}}", "inv_mass_max_lep_obj", true, 0, 0.02);
+  */
+
+  // topHFFF overlar removal study
+  vector<TString> mc16_bjets_n_4_title = {"411076 - 4b", "411077 - 3b", "411078 - 2b1c", "410472 - tt incl."};
+  vector<TH1*> mc16_bjets_n_4_collection = {mc16_bjets_n_411076, mc16_bjets_n_411077, mc16_bjets_n_411078, mc16_bjets_n_410472};
+  int mc16_bjets_n_4_draw = draw_n_histos(mc16_bjets_n_4_collection, mc16_bjets_n_4_title, "#bf{N_{bjets}}", "bjets_n_topHFFF_study", false, 1, pow(10,6));
 
 
   // Close the hists file

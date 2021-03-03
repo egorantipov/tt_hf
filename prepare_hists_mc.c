@@ -185,6 +185,11 @@ void prepare_hists_mc()
   TH1 *h_min_dR_bjet_lep = new TH1F("h_min_dR_bjet_lep", "h_min_dR_bjet_lep", 20, 0, 5);
   TH1 *h_min_dR_jet_bjet = new TH1F("h_min_dR_jet_bjet", "h_min_dR_jet_bjet", 20, 0, 5);
 
+  // Study topHFF overlap removal
+  TH1 *h_bjets_n_410472 = new TH1F("bjets_n_410472", "bjets_n_410472", 6, 2, 8);
+  TH1 *h_bjets_n_411076 = new TH1F("bjets_n_411076", "bjets_n_411076", 6, 2, 8);
+  TH1 *h_bjets_n_411077 = new TH1F("bjets_n_411077", "bjets_n_411077", 6, 2, 8);
+  TH1 *h_bjets_n_411078 = new TH1F("bjets_n_411078", "bjets_n_411078", 6, 2, 8);
 
   // Initialize KLFitter
   KLFitter::Fitter fitter{};
@@ -496,7 +501,7 @@ void prepare_hists_mc()
 			      dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]);
 			      dR2 = el_lvec.DeltaR(jets_lvec[jet_i]); }
 			    else {
-			      dR1 = mu_lvec.DeltaR(jets_lvec[jet_i]);
+			      dR1 = el_lvec.DeltaR(jets_lvec[jet_i]);
 			      dR2 = mu_lvec.DeltaR(jets_lvec[jet_i]); }
 			    
 			    // Sort wrt origin
@@ -606,7 +611,6 @@ void prepare_hists_mc()
 		    // NN variables
 		    vector<int> NN_tHOF_v_one_event;
 		    vector<int> NN_jet_DL1r_77_v_one_event;
-
 		  
 		    double min_dR0 = 999999.;
 		    double min_dR1 = 999999.;
@@ -670,6 +674,13 @@ void prepare_hists_mc()
 		    NN_tHOF_v.push_back(NN_tHOF_v_one_event);
                     NN_jet_DL1r_77_v.push_back(NN_jet_DL1r_77_v_one_event);
 
+		    
+		    
+		    // topHFFF overlap removal studies
+		    if (job_DID=="411076") h_bjets_n_411076->Fill(btags_n, weights);
+		    if (job_DID=="411077") h_bjets_n_411077->Fill(btags_n, weights);
+		    if (job_DID=="411078") h_bjets_n_411078->Fill(btags_n, weights);
+		    if (job_DID=="410472") h_bjets_n_410472->Fill(btags_n, weights);
 
 		  } // 2+b (tags) selection
 
@@ -945,6 +956,12 @@ void prepare_hists_mc()
   h_dR_bjet_lep1->Write("NN__2b_emu_OS_dR_bjet_lep1");
   h_min_dR_bjet_lep->Write("NN__2b_emu_OS_min_dR_bjet_lep");
   h_min_dR_jet_bjet->Write("NN__2b_emu_OS_min_dR_jet_bjet");
+
+  // topHFFF overlap removal study
+  h_bjets_n_411076->Write("topHFFF_study_2b_emu_OS_bjets_n_411076");
+  h_bjets_n_411077->Write("topHFFF_study_2b_emu_OS_bjets_n_411077");
+  h_bjets_n_411078->Write("topHFFF_study_2b_emu_OS_bjets_n_411078");
+  h_bjets_n_410472->Write("topHFFF_study_2b_emu_OS_bjets_n_410472");
 
   // Close the hists file
   hists_file->Close();
