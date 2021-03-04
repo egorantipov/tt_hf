@@ -57,7 +57,8 @@ vector<TString> get_list_of_files(TString dirname, vector<TString> container = {
     while ((file=(TSystemFile*)next())) {
       fname = file->GetName();
       if (fname != "." && fname != "..") {
-	if (fname.EndsWith(".root")) { container.push_back(dirname + fname); }
+	if (!(file->IsDirectory())) { container.push_back(dirname + fname); }
+	//if (fname.EndsWith(".root")) { container.push_back(dirname + fname); }
 	else { container.push_back(dirname + fname + "/"); }
       }
     }
@@ -92,7 +93,7 @@ double dR(float phi_1st, float eta_1st, float phi_2nd, float eta_2nd)
 void prepare_hists_mc()
 {
   // Create a list of directories with ntuples
-  TString path_to_ntuples = "/eos/user/e/eantipov/Files/tt_hf/";
+  TString path_to_ntuples = "/eos/atlas/atlascerngroupdisk/phys-top/ttjets/v4/";
   vector<TString> dir_paths = get_list_of_files(path_to_ntuples);
 
   
@@ -170,9 +171,6 @@ void prepare_hists_mc()
   TH1 *h_max_inv_mass_lep_bjet_not_from_top = new TH1F("h_max_inv_mass_lep_bjet_not_from_top", "h_max_inv_mass_lep_bjet_not_from_top", 1000, 0, 1000);
   TH1 *h_min_inv_mass_lep_other_jet = new TH1F("h_min_inv_mass_lep_other_jet", "h_min_inv_mass_lep_other_jet", 1000, 0, 1000);
   TH1 *h_max_inv_mass_lep_other_jet = new TH1F("h_max_inv_mass_lep_other_jet", "h_max_inv_mass_lep_other_jet", 1000, 0, 1000);
-
-  // topHFF hists
-  TH1 *h_topHFFF = new TH1F("topHFFF", "topHFFF", 5, 0, 5);
   
   // NN variables hists
   TH1 *h_m_bjet_lep_min_dR = new TH1F("h_m_bjet_lep_min_dR", "h_m_bjet_lep_min_dR", 120, 0, 700);
@@ -190,6 +188,11 @@ void prepare_hists_mc()
   TH1 *h_bjets_n_411076 = new TH1F("bjets_n_411076", "bjets_n_411076", 6, 2, 8);
   TH1 *h_bjets_n_411077 = new TH1F("bjets_n_411077", "bjets_n_411077", 6, 2, 8);
   TH1 *h_bjets_n_411078 = new TH1F("bjets_n_411078", "bjets_n_411078", 6, 2, 8);
+  TH1 *h_topHFFF_410472 = new TH1F("topHFFF_410472", "topHFFF_410472", 5, 0, 5);
+  TH1 *h_topHFFF_411076 = new TH1F("topHFFF_411076", "topHFFF_411076", 5, 0 ,5);
+  TH1 *h_topHFFF_411077 = new TH1F("topHFFF_411077", "topHFFF_411077", 5, 0 ,5);
+  TH1 *h_topHFFF_411078 = new TH1F("topHFFF_411078", "topHFFF_411078", 5, 0 ,5);
+  
 
   // Initialize KLFitter
   KLFitter::Fitter fitter{};
@@ -212,36 +215,32 @@ void prepare_hists_mc()
   for (int dir_counter=0; dir_counter<dir_paths.size(); dir_counter++)
     {
       // Announce current directory
+      TSystemFile dir(dir_paths[dir_counter], dir_paths[dir_counter]);
+      if (!(dir.IsDirectory())) continue; 
       cout << "\n\n\n" << dir_paths[dir_counter] << endl;
       
-
+      
       // Check for the content: data/mc? which campaign?
       vector<TString> dir_path_components = split(dir_paths[dir_counter], '/');
       int last_element_index = dir_path_components.size();
       vector<TString> dir_name_components = split(dir_path_components[last_element_index-1], '_');
       bool is_data = false;
-      bool is_2015 = false;
-      bool is_2016 = false;
-      bool is_2017 = false;
-      bool is_2018 = false;
       bool is_mc16a = false;
       bool is_mc16d = false;
       bool is_mc16e = false;
-      for (int i=0; i<dir_name_components.size(); i++)
-	{
+      for (int i=0; i<dir_name_components.size(); i++) {
 	  if (dir_name_components[i] == "data") is_data = true;
-          if (dir_name_components[i] == "2015") is_2015 = true;
-          if (dir_name_components[i] == "2016") is_2016 = true;
-          if (dir_name_components[i] == "2017") is_2017 = true;
-          if (dir_name_components[i] == "2018") is_2018 = true;
           if (dir_name_components[i] == "mc16a") is_mc16a = true;
           if (dir_name_components[i] == "mc16d") is_mc16d = true;
-          if (dir_name_components[i] == "mc16e") is_mc16e = true;
-	}
+          if (dir_name_components[i] == "mc16e") is_mc16e = true; }
       
       
       // We work with MC only
       if (is_data == true) continue;
+
+      
+      // Only nominal trees
+      dir_paths[dir_counter] += "nominal/";
       
 
       // Testing option: run over mc16a campaign only to save time
@@ -250,7 +249,7 @@ void prepare_hists_mc()
 
       // Make a list of paths to jobs/DIDs outputs (pieces of a full ntuple)
       vector<TString> paths_to_jobs = get_list_of_files(dir_paths[dir_counter]);
-
+      
 
       // Loop over jobs/DIDs
       for (int job_number=0; job_number<paths_to_jobs.size(); job_number++)
@@ -261,7 +260,7 @@ void prepare_hists_mc()
 	  vector<TString> job_name_components = split(job_name, '.');
 	  TString job_DID = job_name_components[2];
 	  vector<TString> campaign_info = split(job_name_components[5], '_');
-
+	  
 	  
 	  // Select only jobs/physics_processes of our interest: 
 	  // (1) regular (not alternamtive) samples
@@ -270,7 +269,7 @@ void prepare_hists_mc()
 	  if (job_DID!="410472" && job_DID!="411076" && job_DID!="411077" && job_DID!="411078") { continue; }
 	  else { cout << "\n\nDID: " << job_DID << endl; }
 
-
+	  
 	  // Testing option: keep only tt+all if true
 	  bool only_410472 = false;
 	  //if (job_DID=="410472") { only_410472=true; } else { continue; }
@@ -527,9 +526,6 @@ void prepare_hists_mc()
 
 		  // 2+b (tags), emu, OS
 		  if (emu_cut*OS_cut*btags_n2_cut*topHFFF_cut*jets_n_cut == true) {
-		    
-		    // topHFFF:
-		    h_topHFFF->Fill(topHFFF, weights);
 
 		    // MET hists:
 		    h_met->Fill(met*0.001, weights);
@@ -677,10 +673,10 @@ void prepare_hists_mc()
 		    
 		    
 		    // topHFFF overlap removal studies
-		    if (job_DID=="411076") h_bjets_n_411076->Fill(btags_n, weights);
-		    if (job_DID=="411077") h_bjets_n_411077->Fill(btags_n, weights);
-		    if (job_DID=="411078") h_bjets_n_411078->Fill(btags_n, weights);
-		    if (job_DID=="410472") h_bjets_n_410472->Fill(btags_n, weights);
+		    if (job_DID=="411076") { h_bjets_n_411076->Fill(btags_n, weights); h_topHFFF_411076->Fill(topHFFF, weights); }
+		    if (job_DID=="411077") { h_bjets_n_411077->Fill(btags_n, weights); h_topHFFF_411077->Fill(topHFFF, weights); }
+		    if (job_DID=="411078") { h_bjets_n_411078->Fill(btags_n, weights); h_topHFFF_411078->Fill(topHFFF, weights); }
+		    if (job_DID=="410472") { h_bjets_n_410472->Fill(btags_n, weights); h_topHFFF_410472->Fill(topHFFF, weights); }
 
 		  } // 2+b (tags) selection
 
@@ -857,13 +853,12 @@ void prepare_hists_mc()
 	      
 	      // Close ntuple after we're done with it
 	      ntuple->Close();
-	      
+	          
 	    } // [ntuple_number] - loop over ntuples of a particular job
 	  
 	} // [job_number] - loop over jobs (pieces) of a collection.
-
+      
     } // [dir_counter] - loop over directories names with jobs folders: mc16a, mc16d, mc16e, data
-
 
 
 
@@ -943,9 +938,6 @@ void prepare_hists_mc()
   h_min_inv_mass_lep_other_jet->Write("2b_emu_OS_h_min_inv_mass_lep_other_jet");
   h_max_inv_mass_lep_other_jet->Write("2b_emu_OS_h_max_inv_mass_lep_other_jet");
 
-  // topHFFF
-  h_topHFFF->Write("2b_emu_OS_topHFFF");
-
   // NN variables hists 
   h_m_bjet_lep_min_dR->Write("NN__2b_emu_OS_m_bjet_lep_min_dR");
   h_m_bjet_lep_min->Write("NN__2b_emu_OS_m_bjet_lep_min");
@@ -962,6 +954,10 @@ void prepare_hists_mc()
   h_bjets_n_411077->Write("topHFFF_study_2b_emu_OS_bjets_n_411077");
   h_bjets_n_411078->Write("topHFFF_study_2b_emu_OS_bjets_n_411078");
   h_bjets_n_410472->Write("topHFFF_study_2b_emu_OS_bjets_n_410472");
+  h_topHFFF_411076->Write("topHFFF_study_2b_emu_OS_topHFFF_411076");
+  h_topHFFF_411077->Write("topHFFF_study_2b_emu_OS_topHFFF_411077");
+  h_topHFFF_411078->Write("topHFFF_study_2b_emu_OS_topHFFF_411078");
+  h_topHFFF_410472->Write("topHFFF_study_2b_emu_OS_topHFFF_410472");
 
   // Close the hists file
   hists_file->Close();
@@ -971,14 +967,12 @@ void prepare_hists_mc()
   TFile *NN_tfile = new TFile("tt_jets_NN_input.root", "RECREATE");
   TTree *NN_ttree = new TTree("nominal", "NN_input");
   vector<int> *NN_tHOF, *NN_jet_DL1r_77;
-  TBranch *NN_topHadronOriginFlag_br = NN_ttree->Branch("topHadronOriginFlag", &NN_tHOF, "vector<int>");
-  TBranch *NN_jet_DL1r_77_tag_br = NN_ttree->Branch("jet_isbtagged_DL1r_77", &NN_jet_DL1r_77, "vector<int>");
+  NN_ttree->Branch("topHadronOriginFlag", &NN_tHOF);
+  NN_ttree->Branch("jet_isbtagged_DL1r_77", &NN_jet_DL1r_77);
   for (int entry=0; entry<NN_tHOF_v.size(); entry++) {
     NN_tHOF = &NN_tHOF_v[entry];
     NN_jet_DL1r_77 = &NN_jet_DL1r_77_v[entry];
     
-    NN_topHadronOriginFlag_br->Fill();
-    NN_jet_DL1r_77_tag_br->Fill();
     NN_ttree->Fill();
   }
   NN_ttree->Write("nominal", TTree::kOverwrite);
