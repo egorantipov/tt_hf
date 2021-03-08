@@ -358,6 +358,7 @@ void prepare_hists_mc()
                   double campaign_lumi = 1;
                   double campaign_xsection = 1;
                   double campaign_genFiltEff = 1;
+		  double campaign_xsection_x_genFiltEff = 1;
                   double kFactor = 1;
                   double total_lumi = 3.21956 + 32.9881 + 44.3074 + 58.4501;
 		  
@@ -367,21 +368,25 @@ void prepare_hists_mc()
 		      sumWeights = 3.33006*pow(10, 9);
 		      campaign_xsection = 0.72977;
 		      campaign_genFiltEff = 0.008814;
+		      campaign_xsection_x_genFiltEff = 0.6740;
 		      kFactor = 1.1397; }
 		    if (job_DID=="411077") {
 		      sumWeights = 3.61088*pow(10, 9);
 		      campaign_xsection = 0.72977;
 		      campaign_genFiltEff = 0.046655;
+		      campaign_xsection_x_genFiltEff = 3.582;
 		      kFactor = 1.1398; }
 		    if (job_DID=="411078") {
 		      sumWeights = 3.61598*pow(10, 9);
 		      campaign_xsection = 0.72977;
 		      campaign_genFiltEff = 0.039503;
+		      campaign_xsection_x_genFiltEff = 3.034;
 		      kFactor = 1.1397; }
 		    if (job_DID=="410472") {
 		      sumWeights = 5.82869*pow(10, 10);
 		      campaign_xsection = 0.72977;
 		      campaign_genFiltEff = 0.10547;
+		      campaign_xsection_x_genFiltEff = 76.95;
 		      kFactor = 1.13975636159; } }
 		  if (runNumber==300000) {
 		    campaign_lumi = 44.3074;
@@ -389,21 +394,25 @@ void prepare_hists_mc()
 		      sumWeights = 4.21891*pow(10, 9);
 		      campaign_xsection = 0.72977;
 		      campaign_genFiltEff = 0.008814;
+		      campaign_xsection_x_genFiltEff = 0.6740;
 		      kFactor = 1.1397; }
 		    if (job_DID=="411077") {
 		      sumWeights = 4.49595*pow(10, 9);
 		      campaign_xsection = 0.72977;
 		      campaign_genFiltEff = 0.046655;
+		      campaign_xsection_x_genFiltEff = 3.582;
 		      kFactor = 1.1398; }
 		    if (job_DID=="411078") {
 		      sumWeights = 4.49400*pow(10, 9);
 		      campaign_xsection = 0.72977;
 		      campaign_genFiltEff = 0.039503;
+		      campaign_xsection_x_genFiltEff = 3.034;
 		      kFactor = 1.1397; }
 		    if (job_DID=="410472") {
 		      sumWeights = 7.26510*pow(10, 10);
 		      campaign_xsection = 0.72977;
 		      campaign_genFiltEff = 0.10547;
+		      campaign_xsection_x_genFiltEff = 76.95;
 		      kFactor = 1.13975636159; } }
 		  if (runNumber==310000) {
 		    campaign_lumi = 58.4501;
@@ -411,25 +420,30 @@ void prepare_hists_mc()
 		      sumWeights = 5.47811*pow(10, 9);
 		      campaign_xsection = 0.72977;
 		      campaign_genFiltEff = 0.008814;
+		      campaign_xsection_x_genFiltEff = 0.6740;
 		      kFactor = 1.1397; }
 		    if (job_DID=="411077") {
 		      sumWeights = 5.94763*pow(10, 9);
 		      campaign_xsection = 0.72977;
 		      campaign_genFiltEff = 0.046655;
+		      campaign_xsection_x_genFiltEff = 3.582;
 		      kFactor = 1.1398; }
 		    if (job_DID=="411078") {
 		      sumWeights = 5.94190*pow(10, 9);
 		      campaign_xsection = 0.72977;
 		      campaign_genFiltEff = 0.039503;
+		      campaign_xsection_x_genFiltEff = 3.034;
 		      kFactor = 1.1397; }
 		    if (job_DID=="410472") {
 		      sumWeights = 1.01641*pow(10, 11);
 		      campaign_xsection = 0.72977;
 		      campaign_genFiltEff = 0.10547;
+		      campaign_xsection_x_genFiltEff = 76.95;
 		      kFactor = 1.13975636159; } }
 		  
 		  // Actual computation:
-		  weight_lumi = campaign_lumi * campaign_xsection * pow(10,6) * campaign_genFiltEff * kFactor / sumWeights;
+		  weight_lumi = campaign_lumi * pow(10,3) * campaign_xsection_x_genFiltEff * kFactor / sumWeights;
+		  //weight_lumi = campaign_lumi * campaign_xsection * pow(10,6) * campaign_genFiltEff * kFactor / sumWeights;
 		  double weights = w_mc * w_pu * w_leptonSF * w_DL1r_77 * w_jvt * weight_lumi;
 
 		  

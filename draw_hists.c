@@ -193,7 +193,14 @@ void draw_hists()
   TH1 *mc16_bjets_n_411078 = (TH1*)hists_file_mc->Get("topHFFF_study_2b_emu_OS_bjets_n_411078");
   TH1 *mc16_bjets_n_410472 = (TH1*)hists_file_mc->Get("topHFFF_study_2b_emu_OS_bjets_n_410472");
 
+  // topHFFF distributions
+  TH1 *mc16_topHFFF_411076 = (TH1*)hists_file_mc->Get("topHFFF_study_2b_emu_OS_topHFFF_411076");
+  TH1 *mc16_topHFFF_411077 = (TH1*)hists_file_mc->Get("topHFFF_study_2b_emu_OS_topHFFF_411077");
+  TH1 *mc16_topHFFF_411078 = (TH1*)hists_file_mc->Get("topHFFF_study_2b_emu_OS_topHFFF_411078");
+  TH1 *mc16_topHFFF_410472 = (TH1*)hists_file_mc->Get("topHFFF_study_2b_emu_OS_topHFFF_410472");
   
+  
+
   // Draw the plots in two steps:
   // (1) prepare different combinations of hists (vectors) to draw them on one canvas
   // (2) call a function to draw the collection of hists on one canvas
@@ -217,13 +224,13 @@ void draw_hists()
   int mc16_DL1r_1st_tag_all_draw = draw_n_histos(mc16_DL1r_1st_tag_all, processes, "#bf{DL1r, 1st tag weight}", "1st_tag", true, 0, 0.6);
   int mc16_DL1r_2nd_tag_all_draw = draw_n_histos(mc16_DL1r_2nd_tag_all, processes, "#bf{DL1r, 2nd tag weight}", "2nd_tag", true, 0, 0.6);
   int mc16_DL1r_3rd_tag_all_draw = draw_n_histos(mc16_DL1r_3rd_tag_all, processes, "#bf{DL1r, 3rd tag weight}", "3rd_tag", true, 0, 0.6);
-
+  
 
   // bjets_n for the 2+b channel
   vector<TH1*> mc16_bjets_n_2b_vec = {mc16_bjets_n_2b[0], mc16_bjets_n_2b[1], mc16_bjets_n_2b[2], mc16_bjets_n_2b[3]};
   int mc16_bjets_n_2b_draw = draw_n_histos(mc16_bjets_n_2b_vec, processes, "#bf{N_{bjets}}", "bjets_n", true, 0, 1.1);
 
-
+  
   // Regular dR_min between leptons and bjets
   vector<TString> dR_min_title = {"From top", "Not from top"};
   vector<TH1*> mc16_min_dR_lep0_b = {mc16_dR_min_lep0_b_from_top, mc16_dR_min_lep0_b_not_from_top};
@@ -333,6 +340,10 @@ void draw_hists()
   vector<TString> mc16_bjets_n_4_title = {"411076 - 4b", "411077 - 3b", "411078 - 2b1c", "410472 - tt incl."};
   vector<TH1*> mc16_bjets_n_4_collection = {mc16_bjets_n_411076, mc16_bjets_n_411077, mc16_bjets_n_411078, mc16_bjets_n_410472};
   int mc16_bjets_n_4_draw = draw_n_histos(mc16_bjets_n_4_collection, mc16_bjets_n_4_title, "#bf{N_{bjets}}", "bjets_n_topHFFF_study", false, 1, pow(10,6));
+
+  // topHFFF distributions
+  vector<TH1*> mc16_topHFFF_collection = {mc16_topHFFF_411076, mc16_topHFFF_411077, mc16_topHFFF_411078, mc16_topHFFF_410472};
+  int mc16_topHFFF_draw = draw_n_histos(mc16_topHFFF_collection, mc16_bjets_n_4_title, "#bf{topHFFF}", "topHFFF_distributions", false, 1, pow(10,7));
 
 
   // Close the hists file
